@@ -1,1 +1,1 @@
-from .core import AP
+from .core import AP, PropertyStatement
