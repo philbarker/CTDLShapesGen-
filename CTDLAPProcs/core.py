@@ -38,6 +38,16 @@ class AP:
             raise TypeError(msg)
         return
 
+    def add_propertyStatement(self, ps):
+        """Adds PropertyStatement object to the list of property statements."""
+        if ps in self.propertyStatements:
+            pass
+        elif type(ps) == PropertyStatement:
+            self.propertyStatements.append(ps)
+        else:
+            msg = "Statement must be of PropertyStatement type."
+            raise TypeError(msg)
+
     def dump(self):
         """Print all the AP data."""
         pp = pprint.PrettyPrinter(indent=2)
