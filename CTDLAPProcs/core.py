@@ -30,7 +30,7 @@ class AP:
         return
 
     def add_shapeInfo(self, sh, value):
-        """Adds (over-writes) the ns: URI, key value pair to the namespaces dict."""
+        """Adds (over-writes) the shape info to the shape dict."""
         if (type(sh) == str) and (type(value) == dict):
             self.shapeInfo[sh] = value
         elif type(value) != dict:
