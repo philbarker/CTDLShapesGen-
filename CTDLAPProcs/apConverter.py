@@ -9,7 +9,7 @@ class APConverter(AP):
     def __init__(self):
         super().__init__()
 
-    def load_json_AP(self, fname):
+    def load_CE_APs(self, fname):
         """Convert data from JSON to an AP object"""
         # ToDo: currently implemented for data from a file, could also implement for data from web if suitable methods to read AP data added to readAPJSON
         json_AP = readJSONFile(fname)

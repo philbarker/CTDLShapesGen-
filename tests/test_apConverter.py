@@ -22,8 +22,8 @@ def test_initAP(converter):
     assert converter.propertyStatements == []
 
 
-def test_load_JSON_AP(converter):
-    converter.load_json_AP("InputData/policyBrowserData.json")
+def load_CE_APs(converter):
+    converter.load_CE_APs("InputData/policyBrowserData.json")
     shInfo = converter.shapeInfo
     assert len(shInfo) == 42
     assert shInfo["#ApprenticeshipCertificate"]["targetType"] == "sh:NodeShape"
