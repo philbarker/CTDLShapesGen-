@@ -75,11 +75,7 @@ class PropertyStatement:
     valueDataTypes: list = field(default_factory=list)
     valueShapes: list = field(default_factory=list)
     notes: dict = field(default_factory=dict)
-
-    propertyStatements: list = field(default_factory=list)
-    namespaces: dict = field(default_factory=dict)
-    metadata: dict = field(default_factory=dict)
-    shapeInfo: dict = field(default_factory=dict)
+    severity: str = ""
 
     def add_property(self, propertyID):
         """Append propertyID to class properties list"""
@@ -169,4 +165,11 @@ class PropertyStatement:
             self.notes[lang] = note
         else:
             msg = "Language identifier and note must be strings."
+            raise TypeError(msg)
+
+    def add_severity(self, s):
+        if type(s) == str:
+            self.severity = s
+        else:
+            msg = "Severity value must be a string."
             raise TypeError(msg)

@@ -22,19 +22,26 @@ def test_initAP(converter):
     assert converter.propertyStatements == []
 
 
-def load_CE_APs(converter):
+def test_load_CE_APs(converter):
     converter.load_CE_APs("InputData/policyBrowserData.json")
-    shInfo = converter.shapeInfo
-    assert len(shInfo) == 42
-    assert shInfo["#ApprenticeshipCertificate"]["targetType"] == "sh:NodeShape"
+    ce_AP_data = converter.ce_AP_data
+    assert len(ce_AP_data["RawShapes"]) == 42
+    assert ce_AP_data["RawShapes"][0]["ClassURI"] == "ceterms:ApprenticeshipCertificate"
+
+
+def test_convert_CE_AP(converter):
+    class_data = converter.ce_AP_data["Policy"]["Classes"][0]
+    converter.convert_CE_AP(class_data)
+    assert converter.metadata["dc:title"] == "Apprenticeship Certificate Requirements"
     assert (
-        shInfo["#ApprenticeshipCertificate"]["target"]
-        == "ceterms:ApprenticeshipCertificate"
+        converter.metadata["dc:description"][0:42]
+        == "Required Properties for Credential earned "
     )
-    assert (
-        "ceterms:credentialStatusType"
-        in shInfo["#ApprenticeshipCertificate"]["properties"]
-    )
+    shInfo = converter.shapeInfo["#ApprenticeshipCertificate"]
+    assert shInfo["targetType"] == "sh:NodeShape"
+    assert shInfo["mandatory"] == True
+    assert shInfo["target"] == "ceterms:ApprenticeshipCertificate"
+    assert shInfo["properties"] == []
 
 
 def test_load_namespaces(converter):

@@ -204,6 +204,16 @@ def test_add_note(test_PropertyStatement):
     assert ps.notes == {"en": "new note", "es": "una nota"}  # unchanged
 
 
+def test_add_severity(test_PropertyStatement):
+    ps = test_PropertyStatement
+    ps.add_severity("Warning")
+    assert ps.severity == "Warning"
+    with pytest.raises(TypeError) as e:
+        ps.add_severity(1)
+    assert str(e.value) == "Severity value must be a string."
+    assert ps.severity == "Warning"
+
+
 def test_add_propertyStatement(test_PropertyStatement, test_AP):
     ap = test_AP
     ps = test_PropertyStatement
