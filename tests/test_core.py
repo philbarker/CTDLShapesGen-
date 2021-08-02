@@ -188,6 +188,32 @@ def test_add_valueShape(test_PropertyStatement):
     assert ps.valueShapes == ["aShapeID", "anotherShapeID"]
 
 
+def test_add_valueConstraint(test_PropertyStatement):
+    ps = test_PropertyStatement
+    ps.add_valueConstraint("constraint 1")
+    assert ps.valueConstraints == ["constraint 1"]
+    ps.add_valueConstraint("constraint 2")
+    assert ps.valueConstraints == ["constraint 1", "constraint 2"]
+    ps.add_valueConstraint("constraint 2")  # can't add same constraint twice
+    assert ps.valueConstraints == ["constraint 1", "constraint 2"]
+    with pytest.raises(TypeError) as e:
+        ps.add_valueConstraint(["constraint 3", "constraint 4"])
+    assert str(e.value) == "Constraint must be a string."
+    assert ps.valueConstraints == ["constraint 1", "constraint 2"]
+
+
+def test_add_valueConstraintType(test_PropertyStatement):
+    ps = test_PropertyStatement
+    ps.add_valueConstraintType("pattern")
+    assert ps.valueConstraintType == "pattern"
+    ps.add_valueConstraintType("pick list")
+    assert ps.valueConstraintType == "pick list"
+    with pytest.raises(TypeError) as e:
+        ps.add_valueConstraintType(["patter", "pick list"])
+    assert str(e.value) == "Constraint type must be a string."
+    assert ps.valueConstraintType == "pick list"
+
+
 def test_add_note(test_PropertyStatement):
     ps = test_PropertyStatement
     ps.add_note("en", "a note")

@@ -74,6 +74,8 @@ class PropertyStatement:
     valueNodeTypes: list = field(default_factory=list)
     valueDataTypes: list = field(default_factory=list)
     valueShapes: list = field(default_factory=list)
+    valueConstraints: list = field(default_factory=list)
+    valueConstraintType: str = ""
     notes: dict = field(default_factory=dict)
     severity: str = ""
 
@@ -157,6 +159,25 @@ class PropertyStatement:
                 self.valueShapes.append(shapeID)
         else:
             msg = "Value data type must be a string."
+            raise TypeError(msg)
+
+    def add_valueConstraint(self, constraint):
+        """Append constraint to class valueConstraints list"""
+        if type(constraint) == str:
+            if constraint in self.valueConstraints:
+                pass
+            else:
+                self.valueConstraints.append(constraint)
+        else:
+            msg = "Constraint must be a string."
+            raise TypeError(msg)
+
+    def add_valueConstraintType(self, constraintType):
+        """Set (over-write) class valueConstraintType constraintType"""
+        if type(constraintType) == str:
+            self.valueConstraintType = constraintType
+        else:
+            msg = "Constraint type must be a string."
             raise TypeError(msg)
 
     def add_note(self, lang, note):
