@@ -76,6 +76,7 @@ def test_convert_CE_AP(converter):
             assert ps.valueNodeTypes == ["IRI", "BNode"]
             assert ps.valueDataTypes == []
             assert ps.valueShapes == ["#CredentialAlignmentObject"]
+            assert "#CredentialAlignmentObject" in ap.shapeInfo.keys()
             assert ps.severity == "Violation"
         elif ps.properties == ["ceterms:ctid"]:
             assert ps.shapes == ["#ApprenticeshipCertificate"]
@@ -89,8 +90,6 @@ def test_convert_CE_AP(converter):
     for p in props_found:
         # check we didn't get an props we shouldn't
         assert p in expected_props
-    print(ap.shapeInfo)
-    #assert ["#ApprenticeshipCertificate"] in ap.shapeInfo
 
 def test_load_namespaces(converter):
     converter.ap.load_namespaces("InputData/namespaces.csv")
