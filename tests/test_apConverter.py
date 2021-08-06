@@ -45,9 +45,12 @@ def test_convert_CE_AP(converter):
     assert shInfo["mandatory"] == True
     assert shInfo["target"] == "ceterms:ApprenticeshipCertificate"
     assert shInfo["properties"] == []
-    assert
+    expected_props = [["ceterms:credentialStatusType"], ["ceterms:ctid"], ["ceterms:description"], ["ceterms:inLanguage"], ["ceterms:name"], ["ceterms:subjectWebpage"], ["rdf:type"], []]
+    assert len(ap.propertyStatements) == len(expected_props)
+    for ps in ap.propertyStatements:
+        assert ps.properties in expected_props
 
 
 def test_load_namespaces(converter):
-    converter.load_namespaces("InputData/namespaces.csv")
+    converter.ap.load_namespaces("InputData/namespaces.csv")
     assert converter.ap.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"

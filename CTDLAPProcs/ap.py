@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from .propertyStatement import PropertyStatement
+from csv import DictReader
 import pprint
 
 
@@ -56,7 +57,7 @@ class AP:
             csvReader = DictReader(csv_file)
             for row in csvReader:
                 if row["prefix"] and row["URI"]:
-                    self.ap.add_namespace(row["prefix"], row["URI"])
+                    self.add_namespace(row["prefix"], row["URI"])
                 else:  # pass rows with missing data
                     pass
 

@@ -49,9 +49,27 @@ class APConverter:
                     # for now just let user know
                     # print("PropertyURIs")
                     pass
+                elif p["PropertyURIs"] == [class_data["URI"]]:
+                    # used to indicate need rdf:type
+                    # to do: check it is always for class URI of top level shape
+                    #        ... could be any class URI
+                    if len(p["PropertyURIs"]) == 1:
+                        self.build_ps_type_constraint(p["PropertyURIs"][0], ps)
+                    else:
+                        # to do: what is required for choice of types
+                        pass
                 else:
                     self.build_ps_constraints(p, ps)
-                    self.ap.add_propertyStatement(ps)
+                self.ap.add_propertyStatement(ps)
+
+    def build_ps_type_constraint(self, class_uri, ps):
+        """Add constraint that rdf:type must be uri provided."""
+        ps.add_property("rdf:type")
+        ps.add_mandatory(True)
+        ps.add_repeatable(False)
+        ps.add_valueNodeType("IRI")
+        ps.add_valueConstraint(class_uri)
+
 
     def build_ps_constraints(self, p, ps):
         """Compute and add contraints to property statement ps"""
@@ -142,18 +160,6 @@ class APConverter:
             # will need to add required properties
             # but for now let's see if there are any
             print(property, " has range ", shape_id, " which is primary type.")
-
-    def load_namespaces(self, fname):
-        """Load namespaces from a (csv) file."""
-        # could add options for loading from other formats
-        with open(fname, "r") as csv_file:
-            csvReader = DictReader(csv_file)
-            for row in csvReader:
-                if row["prefix"] and row["URI"]:
-                    self.ap.add_namespace(row["prefix"], row["URI"])
-                else:  # pass rows with missing data
-                    pass
-
 
 # def tap2AP(fname):
 # idea: convert data from TAP to an AP object
