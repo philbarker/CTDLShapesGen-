@@ -4,11 +4,11 @@ from csv import DictReader
 from .readAPJSON import readJSONFile
 
 
-class APConverter(AP):
+class APConverter():
     """Application profile with ability to load and write different formats"""
 
     def __init__(self):
-        super().__init__()
+        self.ap = AP()
 
     def load_CE_APs(self, fname):
         """load CE data from JSON."""
@@ -24,8 +24,8 @@ class APConverter(AP):
         # ToDo: serializer to iterate through all the classes
         # ToDo: cases of required, recommended, all properties
 
-        self.add_metadata("dc:title", class_data["Label"] + " Requirements")
-        self.add_metadata(
+        self.ap.add_metadata("dc:title", class_data["Label"] + " Requirements")
+        self.ap.add_metadata(
             "dc:description", "Required Properties for " + class_data["Definition"]
         )
         # add the "top level" shape
@@ -36,7 +36,7 @@ class APConverter(AP):
             "properties": [],
             "mandatory": True,
         }
-        self.add_shapeInfo(top_shape_id, shape_info)
+        self.ap.add_shapeInfo(top_shape_id, shape_info)
         # add property statements for top level shape
         for p in class_data["PropertySets"]:
             ps = PropertyStatement()
@@ -51,7 +51,7 @@ class APConverter(AP):
                     pass
                 else:
                     self.build_ps_constraints(p, ps)
-                    self.add_propertyStatement(ps)
+                    self.ap.add_propertyStatement(ps)
 
 
     def build_ps_constraints(self, p, ps):
@@ -128,7 +128,7 @@ class APConverter(AP):
             "properties": [],
             "mandatory": True,
         }
-        self.add_shapeInfo(shape_id, shape_info)
+        self.ap.add_shapeInfo(shape_id, shape_info)
         # that shape should have correct type
         ps = PropertyStatement()
         ps.add_shape(shape_id)
@@ -151,7 +151,7 @@ class APConverter(AP):
             csvReader = DictReader(csv_file)
             for row in csvReader:
                 if row["prefix"] and row["URI"]:
-                    self.add_namespace(row["prefix"], row["URI"])
+                    self.ap.add_namespace(row["prefix"], row["URI"])
                 else:  # pass rows with missing data
                     pass
 

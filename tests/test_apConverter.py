@@ -15,11 +15,11 @@ def test_readJSONFile():
 
 
 def test_initAP(converter):
-    assert converter
-    assert converter.metadata == {}
-    assert converter.namespaces == {}
-    assert converter.shapeInfo == {}
-    assert converter.propertyStatements == []
+    assert converter.ap
+    assert converter.ap.metadata == {}
+    assert converter.ap.namespaces == {}
+    assert converter.ap.shapeInfo == {}
+    assert converter.ap.propertyStatements == []
 
 
 def test_load_CE_APs(converter):
@@ -32,12 +32,12 @@ def test_load_CE_APs(converter):
 def test_convert_CE_AP(converter):
     class_data = converter.ce_AP_data["Policy"]["Classes"][0]
     converter.convert_CE_AP(class_data)
-    assert converter.metadata["dc:title"] == "Apprenticeship Certificate Requirements"
+    assert converter.ap.metadata["dc:title"] == "Apprenticeship Certificate Requirements"
     assert (
-        converter.metadata["dc:description"][0:42]
+        converter.ap.metadata["dc:description"][0:42]
         == "Required Properties for Credential earned "
     )
-    shInfo = converter.shapeInfo["#ApprenticeshipCertificate"]
+    shInfo = converter.ap.shapeInfo["#ApprenticeshipCertificate"]
     assert shInfo["targetType"] == "sh:Class"
     assert shInfo["mandatory"] == True
     assert shInfo["target"] == "ceterms:ApprenticeshipCertificate"
@@ -47,4 +47,4 @@ def test_convert_CE_AP(converter):
 
 def test_load_namespaces(converter):
     converter.load_namespaces("InputData/namespaces.csv")
-    assert converter.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"
+    assert converter.ap.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"
