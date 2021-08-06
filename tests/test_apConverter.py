@@ -49,6 +49,14 @@ def test_convert_CE_AP(converter):
     assert len(ap.propertyStatements) == len(expected_props)
     for ps in ap.propertyStatements:
         assert ps.properties in expected_props
+        # pick some for further tests
+        if ps.properties = ["ceterms:description"]:
+            desc_statement = ps
+        elif ps.properties = ["ceterms:credentialStatusType"]:
+            stat_statement = ps
+        elif ps.properties = ["ceterms:subjectWebpage"]:
+            stat_web = ps
+    assert desc_statement.labels == ["Description"]
 
 
 def test_load_namespaces(converter):
