@@ -34,6 +34,12 @@ def test_add_namespace(test_AP):
         ap.add_namespace("dct", ["http://purl.org/dc/terms/"])
     assert str(e.value) == "Both ns and URI must be strings."
 
+def test_load_namespaces(test_AP):
+    ap = test_AP
+    ns_file = "InputData/namespaces.csv"
+    ap.load_namespaces(ns_file)
+        assert ap.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"
+
 
 def test_add_metadata(test_AP):
     ap = test_AP

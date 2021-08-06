@@ -49,6 +49,17 @@ class AP:
             msg = "Statement must be of PropertyStatement type."
             raise TypeError(msg)
 
+    def load_namespaces(self, fname):
+        """Load namespaces from a (csv) file."""
+        # could add options for loading from other formats
+        with open(fname, "r") as csv_file:
+            csvReader = DictReader(csv_file)
+            for row in csvReader:
+                if row["prefix"] and row["URI"]:
+                    self.ap.add_namespace(row["prefix"], row["URI"])
+                else:  # pass rows with missing data
+                    pass
+
     def dump(self):
         """Print all the AP data."""
         pp = pprint.PrettyPrinter(indent=2)
