@@ -5,7 +5,7 @@ from .readAPJSON import readJSONFile
 
 
 class APConverter():
-    """Application profile with ability to load and write different formats"""
+    """Class comprising AP and with ability to load and write different formats"""
 
     def __init__(self):
         self.ap = AP()
