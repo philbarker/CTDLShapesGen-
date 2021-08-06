@@ -4,8 +4,8 @@ from csv import DictReader
 from .readAPJSON import readJSONFile
 
 
-class APConverter():
-    """Class comprising AP and with ability to load and write different formats"""
+class APConverter:
+    """Class comprising AP and Cred Engine JSON data, and with methods to convert latter to former."""
 
     def __init__(self):
         self.ap = AP()
@@ -52,7 +52,6 @@ class APConverter():
                 else:
                     self.build_ps_constraints(p, ps)
                     self.ap.add_propertyStatement(ps)
-
 
     def build_ps_constraints(self, p, ps):
         """Compute and add contraints to property statement ps"""

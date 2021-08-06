@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, asdict
 from .propertyStatement import PropertyStatement
 import pprint
 
+
 @dataclass
 class AP:
     """Data to define an Application Profile."""

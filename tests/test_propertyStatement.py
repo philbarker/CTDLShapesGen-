@@ -14,8 +14,6 @@ def test_PropertyStatement():
     return ps
 
 
-
-
 def test_init_defaults(test_PropertyStatement):
     assert test_PropertyStatement
     assert test_PropertyStatement.shapes == []

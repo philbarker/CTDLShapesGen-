@@ -32,7 +32,9 @@ def test_load_CE_APs(converter):
 def test_convert_CE_AP(converter):
     class_data = converter.ce_AP_data["Policy"]["Classes"][0]
     converter.convert_CE_AP(class_data)
-    assert converter.ap.metadata["dc:title"] == "Apprenticeship Certificate Requirements"
+    assert (
+        converter.ap.metadata["dc:title"] == "Apprenticeship Certificate Requirements"
+    )
     assert (
         converter.ap.metadata["dc:description"][0:42]
         == "Required Properties for Credential earned "
@@ -42,7 +44,6 @@ def test_convert_CE_AP(converter):
     assert shInfo["mandatory"] == True
     assert shInfo["target"] == "ceterms:ApprenticeshipCertificate"
     assert shInfo["properties"] == []
-
 
 
 def test_load_namespaces(converter):
