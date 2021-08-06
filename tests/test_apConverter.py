@@ -38,10 +38,11 @@ def test_convert_CE_AP(converter):
         == "Required Properties for Credential earned "
     )
     shInfo = converter.shapeInfo["#ApprenticeshipCertificate"]
-    assert shInfo["targetType"] == "sh:NodeShape"
+    assert shInfo["targetType"] == "sh:Class"
     assert shInfo["mandatory"] == True
     assert shInfo["target"] == "ceterms:ApprenticeshipCertificate"
     assert shInfo["properties"] == []
+
 
 
 def test_load_namespaces(converter):

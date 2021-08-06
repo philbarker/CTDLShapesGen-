@@ -1,4 +1,5 @@
-from .core import AP, PropertyStatement
+from .ap import AP
+from .propertyStatement import PropertyStatement
 from csv import DictReader
 from .readAPJSON import readJSONFile
 
@@ -18,11 +19,10 @@ class APConverter(AP):
 
     def convert_CE_AP(self, class_data):
         """Build an AP from the a class in the list ce_AP_data ["Classes"] list"""
-        # need to hard-code some info not in AP data
-        dont_repeat = ["ceterms:ctid", "ceterms:name"]
         # first, just the Required properties
         # ToDo: factor out functions rptd between req & rec
         # ToDo: serializer to iterate through all the classes
+        # ToDo: cases of required, recommended, all properties
 
         self.add_metadata("dc:title", class_data["Label"] + " Requirements")
         self.add_metadata(
@@ -31,7 +31,7 @@ class APConverter(AP):
         # add the "top level" shape
         top_shape_id = "#" + class_data["Label"].replace(" ", "")
         shape_info = {
-            "targetType": "sh:NodeShape",
+            "targetType": "sh:Class",
             "target": class_data["URI"],
             "properties": [],
             "mandatory": True,
@@ -40,56 +40,109 @@ class APConverter(AP):
         # add property statements for top level shape
         for p in class_data["PropertySets"]:
             ps = PropertyStatement()
-            ps_id = "#" + p["Label"].replace(" ", "")
             if p["ImportanceLevel"] == "constraintType:RequiresProperty":
                 ps.add_shape(top_shape_id)
+                ps.add_label("en-US", p["Label"])
                 ps.add_severity("Violation")
-                ps.add_repeatable(True)
                 if len(p["PropertyURIs"]) > 1:
                     # do what is needed to get sh:or
+                    # for now just let user know
+                    # print("PropertyURIs")
                     pass
                 else:
-                    uri = p["PropertyURIs"][0]
-                    ps.add_property(uri)
-                    ps.add_mandatory(True)
-                    if uri in dont_repeat:
-                        ps.add_repeatable(False)
-                    range = self.findRange(uri)
-                    for uri in range:
-                        y = self.processRange(range, p)
+                    self.build_ps_constraints(p, ps)
+                    self.add_propertyStatement(ps)
 
-                ps.add_label("en-US", p["Label"])
 
-    #    valueNodeTypes: list = field(default_factory=list)
-    #    valueDataTypes: list = field(default_factory=list)
-    #    valueShapes: list = field(default_factory=list)
-    #    notes: dict = field(default_factory=dict)
+    def build_ps_constraints(self, p, ps):
+        """Compute and add contraints to property statement ps"""
+        # need to hard-code some info not in AP data
+        dont_repeat = ["ceterms:ctid", "ceterms:name"]
+        uri = p["PropertyURIs"][0]
+        ps.add_property(uri)
+        ps.add_mandatory(True)
+        if uri in dont_repeat:
+            ps.add_repeatable(False)
+        range = self.findRange(uri)
+        for class_uri in range:
+            (
+                valueNodeTypes,
+                valueDataTypes,
+                valueShape,
+                valueConstraint,
+                valueConstraintType,
+            ) = self.processRange(class_uri, p)
+            if valueNodeTypes:
+                for vnt in valueNodeTypes:
+                    ps.add_valueNodeType(vnt)
+            if valueDataTypes:
+                for vdt in valueDataTypes:
+                    ps.add_valueDataType(vdt)
+            if valueShape:
+                ps.add_valueShape(valueShape)
+            if valueConstraint:
+                ps.add_valueConstraint(valueConstraint)
+            if valueConstraintType:
+                ps.add_valueConstraintType(valueConstraintType)
+        return ps
 
     def findRange(self, uri):
         """Return range of property with uri as a list."""
         for propData in self.ce_AP_data["PropertyData"]:
             if uri == propData["URI"]:
                 return propData["Range"]
-            return []  # sometimes what is listed in the PropertyData is the type
+        return []  # sometimes what is listed in the PropertyData is the type
 
     def processRange(self, uri, p):
         """Return value constraints for property p based on range uri."""
         prefix, name = uri.split(":")
+        print(prefix)
         if prefix == "xsd" or uri == "rdf:langString":
             # range is a literal type
             valueNodeTypes = ["Literal"]
             valueDataTypes = [uri]
             valueShape = None
+            valueConstraint = None
+            valueConstraintType = None
         elif prefix == "ceterms":  # need to process non-literal
-            if uri in self.ce_Primary_Types:
-                valueNodeTypes = ["IRI"]
-                self.createSecondaryShape(uri, p)
-            else:
-                valueNodeTypes = ["IRI", "BNode"]
+            valueShape = "#" + name
+            valueNodeTypes = ["IRI", "BNode"]
+            valueDataTypes = None
+            valueConstraint = None
+            valueConstraintType = None
+            self.createSecondaryShape(valueShape, uri, p)
+        return (
+            valueNodeTypes,
+            valueDataTypes,
+            valueShape,
+            valueConstraint,
+            valueConstraintType,
+        )
 
-    def createSecondaryShape(self, uri, targetOf):
-        """Create a target Node shape."""
-        pass
+    def createSecondaryShape(self, shape_id, type, property):
+        """Create a shape for objects of property, with type."""
+        # if requirements for target node are listed, then need a shape for it
+        shape_info = {
+            "targetType": "sh:ObjectsOf",
+            "target": property,
+            "properties": [],
+            "mandatory": True,
+        }
+        self.add_shapeInfo(shape_id, shape_info)
+        # that shape should have correct type
+        ps = PropertyStatement()
+        ps.add_shape(shape_id)
+        ps.add_property("rdf:type")
+        ps.add_label("en-US", "member of class")
+        ps.add_mandatory(True)
+        ps.add_repeatable(False)
+        ps.add_valueNodeType("IRI")
+        ps.add_valueConstraint(type)
+        ps.add_severity("Violation")
+        if shape_id in self.ce_Primary_Types:
+            # will need to add required properties
+            # but for now let's see if there are any
+            print(property, " has range ", shape_id, " which is primary type.")
 
     def load_namespaces(self, fname):
         """Load namespaces from a (csv) file."""
