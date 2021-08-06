@@ -187,6 +187,10 @@ def test_add_severity(test_PropertyStatement):
         ps.add_severity(1)
     assert str(e.value) == "Severity value must be a string."
     assert ps.severity == "Warning"
+    with pytest.raises(TypeError) as e:
+        ps.add_severity(["Warning"])
+    assert str(e.value) == "Severity value must be a string."
+    assert ps.severity == "Warning"
 
 
 def test_add_propertyStatement(test_PropertyStatement, test_AP):

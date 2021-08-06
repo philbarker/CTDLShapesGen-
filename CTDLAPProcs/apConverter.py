@@ -9,6 +9,13 @@ class APConverter:
 
     def __init__(self):
         self.ap = AP()
+        # need to hard-code some info not in AP data
+        self.dont_repeat = [
+            "ceterms:ctid",
+            "ceterms:name",
+            "ceterms:description",
+            "ceterms:subjectWebpage",
+        ]
 
     def load_CE_APs(self, fname):
         """load CE data from JSON."""
@@ -70,16 +77,15 @@ class APConverter:
         ps.add_valueNodeType("IRI")
         ps.add_valueConstraint(class_uri)
 
-
     def build_ps_constraints(self, p, ps):
         """Compute and add contraints to property statement ps"""
-        # need to hard-code some info not in AP data
-        dont_repeat = ["ceterms:ctid", "ceterms:name"]
         uri = p["PropertyURIs"][0]
         ps.add_property(uri)
         ps.add_mandatory(True)
-        if uri in dont_repeat:
+        if uri in self.dont_repeat:
             ps.add_repeatable(False)
+        else:
+            ps.add_repeatable(True)
         range = self.findRange(uri)
         for class_uri in range:
             (
@@ -101,7 +107,6 @@ class APConverter:
                 ps.add_valueConstraint(valueConstraint)
             if valueConstraintType:
                 ps.add_valueConstraintType(valueConstraintType)
-        return ps
 
     def findRange(self, uri):
         """Return range of property with uri as a list."""
@@ -113,7 +118,7 @@ class APConverter:
     def processRange(self, uri, p):
         """Return value constraints for property p based on range uri."""
         prefix, name = uri.split(":")
-        print(prefix)
+        print("debug: processRange found prefix: ", prefix)
         if prefix == "xsd" or uri == "rdf:langString":
             # range is a literal type
             valueNodeTypes = ["Literal"]
@@ -160,6 +165,7 @@ class APConverter:
             # will need to add required properties
             # but for now let's see if there are any
             print(property, " has range ", shape_id, " which is primary type.")
+
 
 # def tap2AP(fname):
 # idea: convert data from TAP to an AP object
