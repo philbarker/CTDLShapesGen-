@@ -79,14 +79,14 @@ class APConverter:
 
     def build_ps_constraints(self, p, ps):
         """Compute and add contraints to property statement ps"""
-        uri = p["PropertyURIs"][0]
-        ps.add_property(uri)
+        prop_uri = p["PropertyURIs"][0]
+        ps.add_property(prop_uri)
         ps.add_mandatory(True)
-        if uri in self.dont_repeat:
+        if prop_uri in self.dont_repeat:
             ps.add_repeatable(False)
         else:
             ps.add_repeatable(True)
-        range = self.findRange(uri)
+        range = self.findRange(prop_uri)
         for class_uri in range:
             (
                 valueNodeTypes,
@@ -94,7 +94,7 @@ class APConverter:
                 valueShape,
                 valueConstraint,
                 valueConstraintType,
-            ) = self.processRange(class_uri, p)
+            ) = self.processRange(class_uri, prop_uri)
             if valueNodeTypes:
                 for vnt in valueNodeTypes:
                     ps.add_valueNodeType(vnt)
@@ -115,14 +115,14 @@ class APConverter:
                 return propData["Range"]
         return []  # sometimes what is listed in the PropertyData is the type
 
-    def processRange(self, uri, p):
+    def processRange(self, r_uri, p_uri):
         """Return value constraints for property p based on range uri."""
-        prefix, name = uri.split(":")
+        prefix, name = r_uri.split(":")
         print("debug: processRange found prefix: ", prefix)
-        if prefix == "xsd" or uri == "rdf:langString":
+        if prefix == "xsd" or r_uri == "rdf:langString":
             # range is a literal type
             valueNodeTypes = ["Literal"]
-            valueDataTypes = [uri]
+            valueDataTypes = [r_uri]
             valueShape = None
             valueConstraint = None
             valueConstraintType = None
@@ -132,7 +132,7 @@ class APConverter:
             valueDataTypes = None
             valueConstraint = None
             valueConstraintType = None
-            self.createSecondaryShape(valueShape, uri, p)
+            self.createSecondaryShape(valueShape, r_uri, p_uri)
         return (
             valueNodeTypes,
             valueDataTypes,

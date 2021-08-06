@@ -89,7 +89,8 @@ def test_convert_CE_AP(converter):
     for p in props_found:
         # check we didn't get an props we shouldn't
         assert p in expected_props
-    assert ["#ApprenticeshipCertificate"] in ap.shapeInfo.keys()
+    print(ap.shapeInfo)
+    assert ["#ApprenticeshipCertificate"] in ap.shapeInfo
 
 def test_load_namespaces(converter):
     converter.ap.load_namespaces("InputData/namespaces.csv")
