@@ -39,7 +39,7 @@ def test_load_namespaces(test_AP):
     ap = test_AP
     ns_file = "InputData/namespaces.csv"
     ap.load_namespaces(ns_file)
-    assert ap.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"
+    assert ap.namespaces["ceterms"] == "https://purl.org/ctdl/terms/"
 
 
 def test_add_metadata(test_AP):

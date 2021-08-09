@@ -4,7 +4,7 @@ from csv import DictReader
 from .readAPJSON import readJSONFile
 
 
-class APConverter:
+class CE2APConverter:
     """Class comprising AP and Cred Engine JSON data, and with methods to convert latter to former."""
 
     def __init__(self):

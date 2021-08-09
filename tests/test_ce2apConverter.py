@@ -1,10 +1,10 @@
 import pytest
-from CTDLAPProcs import APConverter, readJSONFile
+from CTDLAPProcs import CE2APConverter, readJSONFile
 
 
 @pytest.fixture(scope="module")
 def converter():
-    converter = APConverter()
+    converter = CE2APConverter()
     return converter
 
 
@@ -88,9 +88,10 @@ def test_convert_CE_AP(converter):
             assert ps.valueShapes == []
             assert ps.severity == "Violation"
     for p in props_found:
-        # check we didn't get an props we shouldn't
+        # check we didn't get any props we shouldn't
         assert p in expected_props
+
 
 def test_load_namespaces(converter):
     converter.ap.load_namespaces("InputData/namespaces.csv")
-    assert converter.ap.namespaces["ceterms:"] == "https://purl.org/ctdl/terms/"
+    assert converter.ap.namespaces["ceterms"] == "https://purl.org/ctdl/terms/"

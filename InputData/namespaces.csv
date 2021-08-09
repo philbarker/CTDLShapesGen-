@@ -1,11 +1,11 @@
 prefix,URI,Note
-sh:,http://www.w3.org/ns/shacl#,
-rdf:,http://www.w3.org/1999/02/22-rdf-syntax-ns#,
-rdfs:,http://www.w3.org/2000/01/rdf-schema#,
-xsd:,http://www.w3.org/2001/XMLSchema#,
-ceterms:,https://purl.org/ctdl/terms/,
-agentSector:,https://purl.org/ctdl/vocabs/agentSector/,
-orgType:,https://purl.org/ctdl/vocabs/orgType/,
+sh,http://www.w3.org/ns/shacl#,
+rdf,http://www.w3.org/1999/02/22-rdf-syntax-ns#,
+rdfs,http://www.w3.org/2000/01/rdf-schema#,
+xsd,http://www.w3.org/2001/XMLSchema#,
+ceterms,https://purl.org/ctdl/terms/,
+agentSector,https://purl.org/ctdl/vocabs/agentSector/,
+orgType,https://purl.org/ctdl/vocabs/orgType/,
 ,https://raw.githubusercontent.com/philbarker/CTDLValidation/main/shapes/credOrg_req.ttl,default
 asn,http://purl.org/ASN/schema/core/,Achievement Standards Network
 case,https://purl.imsglobal.org/spec/case/,IMS Global CASE
