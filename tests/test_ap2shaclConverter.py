@@ -1,14 +1,70 @@
 import pytest
-from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter
+from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, label2uri
+from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
+
+schema = Namespace("https://schema.org/")
 
 
 @pytest.fixture(scope="module")
-def simple_ap():
-    ap = AP()
-    ap.load_namespaces("InputData/namespaces.csv")
-    ap.add_metadata("dct:title", "Test application profile")
-    ap.add_metadata("dct:date", "2021-08-09")
-    p_shapeInfo = {
+def name_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("schema:name")
+    ps.add_label("en", "Name")
+    ps.add_mandatory(True)
+    ps.add_repeatable(False)
+    ps.add_valueNodeType("Literal")
+    ps.add_valueDataType("xsd:string")
+    ps.add_severity("Violation")
+    return ps
+
+
+@pytest.fixture(scope="module")
+def person_type_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("rdf:type")
+    ps.add_label("en", "Type")
+    ps.add_mandatory(True)
+    ps.add_repeatable(False)
+    ps.add_valueNodeType("IRI")
+    ps.add_valueConstraint("schema:Person")
+    ps.add_severity("Violation")
+    return ps
+
+
+@pytest.fixture(scope="module")
+def address_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("schema:address")
+    ps.add_label("en", "Address")
+    ps.add_mandatory(False)
+    ps.add_repeatable(True)
+    ps.add_valueNodeType("IRI")
+    ps.add_valueNodeType("BNode")
+    ps.add_valueShape("#Address")
+    ps.add_severity("Warning")
+    return ps
+
+
+@pytest.fixture(scope="module")
+def address_type_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Address")
+    ps.add_property("rdf:type")
+    ps.add_label("en", "Type")
+    ps.add_mandatory(True)
+    ps.add_repeatable(False)
+    ps.add_valueNodeType("IRI")
+    ps.add_valueConstraint("schema:Address")
+    ps.add_severity("Violation")
+    return ps
+
+
+@pytest.fixture(scope="module")
+def person_shapeInfo():
+    shapeInfo = {
         "label": "Person shape",
         "comment": "Just a shape for tests",
         "target": "schema:Person",
@@ -17,39 +73,12 @@ def simple_ap():
         "severity": "Warning",
         "properties": ["name", "address"],
     }
-    ap.add_shapeInfo("#Person", p_shapeInfo)
-    p_type_ps = PropertyStatement()
-    p_type_ps.add_shape("#Person")
-    p_type_ps.add_property("rdf:type")
-    p_type_ps.add_label("en", "Type")
-    p_type_ps.add_mandatory(True)
-    p_type_ps.add_repeatable(False)
-    p_type_ps.add_valueNodeType("IRI")
-    p_type_ps.add_valueConstraint("schema:Person")
-    p_type_ps.add_severity("Violation")
-    ap.add_propertyStatement(p_type_ps)
-    name_ps = PropertyStatement()
-    name_ps.add_shape("#Person")
-    name_ps.add_property("schema:name")
-    name_ps.add_label("en", "Name")
-    name_ps.add_mandatory(True)
-    name_ps.add_repeatable(False)
-    name_ps.add_valueNodeType("Literal")
-    name_ps.add_valueDataType("xsd:string")
-    name_ps.add_severity("Violation")
-    ap.add_propertyStatement(name_ps)
-    address_ps = PropertyStatement()
-    address_ps.add_shape("#Person")
-    address_ps.add_property("schema:address")
-    address_ps.add_label("en", "Address")
-    address_ps.add_mandatory(False)
-    address_ps.add_repeatable(True)
-    address_ps.add_valueNodeType("IRI")
-    address_ps.add_valueNodeType("BNode")
-    address_ps.add_valueShape("#Address")
-    address_ps.add_severity("Warning")
-    ap.add_propertyStatement(address_ps)
-    a_shapeInfo = {
+    return shapeInfo
+
+
+@pytest.fixture(scope="module")
+def address_shapeInfo():
+    shapeInfo = {
         "label": "Address shape",
         "comment": "Just a shape for tests",
         "target": "schema:address",
@@ -58,27 +87,74 @@ def simple_ap():
         "severity": "Warning",
         "properties": [],
     }
-    ap.add_shapeInfo("#Address", a_shapeInfo)
-    a_type_ps = PropertyStatement()
-    a_type_ps.add_shape("#Address")
-    a_type_ps.add_property("rdf:type")
-    a_type_ps.add_label("en", "Type")
-    a_type_ps.add_mandatory(True)
-    a_type_ps.add_repeatable(False)
-    a_type_ps.add_valueNodeType("IRI")
-    a_type_ps.add_valueConstraint("schema:Address")
-    a_type_ps.add_severity("Violation")
-    ap.add_propertyStatement(a_type_ps)
+    return shapeInfo
+
+
+@pytest.fixture(scope="module")
+def simple_ap(
+    person_shapeInfo,
+    name_ps,
+    person_type_ps,
+    address_ps,
+    address_shapeInfo,
+    address_type_ps,
+):
+    ap = AP()
+    ap.load_namespaces("InputData/namespaces.csv")
+    ap.add_metadata("dct:title", "Test application profile")
+    ap.add_metadata("dct:date", "2021-08-09")
+    ap.add_shapeInfo("#Person", person_shapeInfo)
+    ap.add_propertyStatement(person_type_ps)
+    ap.add_propertyStatement(name_ps)
+    ap.add_propertyStatement(address_ps)
+    ap.add_shapeInfo("#Address", address_shapeInfo)
+    ap.add_propertyStatement(address_type_ps)
 
     return ap
 
 
+def test_label2uri():
+    ps = PropertyStatement()
+    id = label2uri(ps)
+    assert type(id) == URIRef
+    ps.add_label("fr", "Coleur")
+    id = label2uri(ps)
+    assert id == URIRef("#Coleur")
+    ps.add_label("en-US", "Color Property")
+    id = label2uri(ps)
+    assert id == URIRef("#ColorProperty")
+    ps.add_label("en", "Colour Property")
+    id = label2uri(ps)
+    assert id == URIRef("#ColourProperty")
+
+
 def test_ap2shaclInit(simple_ap):
     converter = AP2SHACLConverter(simple_ap)
-    assert converter.ap
+    converter.dump_shacl()
+    assert type(converter.ap) == AP
     assert converter.ap.metadata["dct:title"] == "Test application profile"
     assert "dct" in converter.ap.namespaces.keys()
     assert "rdf" in converter.ap.namespaces.keys()
     assert "sh" in converter.ap.namespaces.keys()
     assert len(converter.ap.propertyStatements) == 4
     assert len(converter.ap.shapeInfo) == 2
+    assert type(converter.sg) == Graph
+    all_ns = [n for n in converter.sg.namespace_manager.namespaces()]
+    assert ("schema", URIRef("https://schema.org/")) in all_ns
+    assert ("sh", URIRef("http://www.w3.org/ns/shacl#")) in all_ns
+    expected_triples = [
+        (URIRef("#Person"), RDF.type, SH.NodeShape),
+        (URIRef("#Person"), RDFS.label, Literal("Person shape")),
+        (URIRef("#Person"), RDFS.comment, Literal("Just a shape for tests")),
+        (URIRef("#Person"), SH.targetClass, schema.Person),
+        (URIRef("#Address"), RDF.type, SH.NodeShape),
+        (URIRef("#Address"), RDFS.label, Literal("Address shape")),
+        (URIRef("#Address"), RDFS.comment, Literal("Just a shape for tests")),
+        (URIRef("#Address"), SH.targetObjectsOf, schema.address),
+    ]
+    for t in expected_triples:
+        assert t in converter.sg
+    assert False
+
+
+# assert False

@@ -7,7 +7,7 @@ from .readAPJSON import readJSONFile
 class CE2APConverter:
     """Class comprising AP and Cred Engine JSON data, and with methods to convert latter to former."""
 
-    def __init__(self):
+    def __init__(self, fname):
         self.ap = AP()
         # need to hard-code some info not in AP data
         self.dont_repeat = [
@@ -16,6 +16,7 @@ class CE2APConverter:
             "ceterms:description",
             "ceterms:subjectWebpage",
         ]
+        self.load_CE_APs(fname)
 
     def load_CE_APs(self, fname):
         """load CE data from JSON."""
@@ -118,7 +119,7 @@ class CE2APConverter:
     def processRange(self, r_uri, p_uri):
         """Return value constraints for property p based on range uri."""
         prefix, name = r_uri.split(":")
-        print("debug: processRange found prefix: ", prefix)
+        #        print("debug: processRange found prefix: ", prefix)
         if prefix == "xsd" or r_uri == "rdf:langString":
             # range is a literal type
             valueNodeTypes = ["Literal"]

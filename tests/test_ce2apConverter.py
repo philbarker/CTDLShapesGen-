@@ -1,17 +1,19 @@
 import pytest
 from CTDLAPProcs import CE2APConverter, readJSONFile
 
-
-@pytest.fixture(scope="module")
-def converter():
-    converter = CE2APConverter()
-    return converter
+ce_data_file = "InputData/policyBrowserData.json"
 
 
 def test_readJSONFile():
-    ap_data = readJSONFile("InputData/policyBrowserData.json")
+    ap_data = readJSONFile(ce_data_file)
     assert len(ap_data["RawShapes"]) == 42
     assert ap_data["RawShapes"][0]["ClassURI"] == "ceterms:ApprenticeshipCertificate"
+
+
+@pytest.fixture(scope="module")
+def converter():
+    converter = CE2APConverter(ce_data_file)
+    return converter
 
 
 def test_initAP(converter):
