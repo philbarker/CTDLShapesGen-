@@ -5,12 +5,12 @@ from rdflib import SH, RDF, RDFS
 from uuid import uuid4
 
 
-def label2uri(ps):
-    """Return a URI id based on a property statement label."""
-    # TODO: allow user to set preferences for which label.
+def make_property_shape_id(ps):
+    """Return a URI id based on a property statement label & shape."""
+    # TODO: allow user to set preferences for which labels to use.
     # TODO: make sure label is IRI safe before using it in URIRef
     if ps.labels == {}:
-        id = URIRef("#" + str(uuid4()))
+        id = URIRef("#" + str(uuid4()).lower())
         return id
     else:
         languages = ps.labels.keys()
@@ -20,6 +20,7 @@ def label2uri(ps):
             label = ps.labels["en-US"]
         else:  # just pull the first one that's found
             label = list(ps.labels.values())[0]
+        label = label[0].lower() + label[1:] # lowerCamelCase
         id = URIRef("#" + label.replace(" ", ""))
         return id
 
@@ -78,12 +79,14 @@ class AP2SHACLConverter:
                 self.sg.add((shape_uri, targetType, target))
 
     def convert_propertyStatements(self):
-        """Add the property statements from the application profile to the SHACL graph."""
+        """Add the property statements from the application profile to the SHACL graph as property shapes."""
         for ps in self.ap.propertyStatements:
-            ps_id = label2uri(ps)
+            ps_id = make_property_shape_id(ps)
             if ps.repeatable:
-                for shape in ps.shapes:
-                    pass
+                pass # nothing else to do
+            else:
+                pass # create Property shape to assert uniqueness
+
 
     def dump_shacl(self):
         """Print the SHACL Graph in Turtle."""

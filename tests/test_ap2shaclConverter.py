@@ -1,5 +1,5 @@
 import pytest
-from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, label2uri
+from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, make_property_shape_id
 from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
 
 schema = Namespace("https://schema.org/")
@@ -113,19 +113,19 @@ def simple_ap(
     return ap
 
 
-def test_label2uri():
+def test_make_property_shape_id():
     ps = PropertyStatement()
-    id = label2uri(ps)
+    id = make_property_shape_id(ps)
     assert type(id) == URIRef
     ps.add_label("fr", "Coleur")
-    id = label2uri(ps)
-    assert id == URIRef("#Coleur")
+    id = make_property_shape_id(ps)
+    assert id == URIRef("#coleur")
     ps.add_label("en-US", "Color Property")
-    id = label2uri(ps)
-    assert id == URIRef("#ColorProperty")
+    id = make_property_shape_id(ps)
+    assert id == URIRef("#colorProperty")
     ps.add_label("en", "Colour Property")
-    id = label2uri(ps)
-    assert id == URIRef("#ColourProperty")
+    id = make_property_shape_id(ps)
+    assert id == URIRef("#colourProperty")
 
 
 def test_ap2shaclInit(simple_ap):
