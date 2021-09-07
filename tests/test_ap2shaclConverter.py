@@ -11,8 +11,9 @@ def name_ps():
     ps.add_shape("#Person")
     ps.add_property("schema:name")
     ps.add_label("en", "Name")
+    ps.add_label("es", "Nombre")
     ps.add_mandatory(True)
-    ps.add_repeatable(False)
+    ps.add_repeatable(True)
     ps.add_valueNodeType("Literal")
     ps.add_valueDataType("xsd:string")
     ps.add_severity("Violation")
@@ -119,13 +120,13 @@ def test_make_property_shape_id():
     assert type(id) == URIRef
     ps.add_label("fr", "Coleur")
     id = make_property_shape_id(ps)
-    assert id == URIRef("#coleur")
+    assert id == URIRef("#_Coleur")
     ps.add_label("en-US", "Color Property")
     id = make_property_shape_id(ps)
-    assert id == URIRef("#colorProperty")
+    assert id == URIRef("#_ColorProperty")
     ps.add_label("en", "Colour Property")
     id = make_property_shape_id(ps)
-    assert id == URIRef("#colourProperty")
+    assert id == URIRef("#_ColourProperty")
 
 
 def test_ap2shaclInit(simple_ap):

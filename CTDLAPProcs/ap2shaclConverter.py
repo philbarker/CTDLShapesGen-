@@ -1,16 +1,23 @@
 from .ap import AP
 from .propertyStatement import PropertyStatement
 from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib import SH, RDF, RDFS
+from rdflib import SH, RDF, RDFS, XSD
 from uuid import uuid4
+from urllib.parse import quote
 
 
 def make_property_shape_id(ps):
     """Return a URI id based on a property statement label & shape."""
     # TODO: allow user to set preferences for which labels to use.
     # TODO: make sure label is IRI safe before using it in URIRef
+    if ps.shapes == []:
+        sh = "_"
+    else:
+        # using first shld be enough to dismbiguate
+        # need to avoid unnecessary #s
+        sh = quote(ps.shapes[0].replace("#","").replace(" ","").lower())
     if ps.labels == {}:
-        id = URIRef("#" + str(uuid4()).lower())
+        id = "#" + sh + URIRef(str(uuid4()).lower())
         return id
     else:
         languages = ps.labels.keys()
@@ -20,8 +27,8 @@ def make_property_shape_id(ps):
             label = ps.labels["en-US"]
         else:  # just pull the first one that's found
             label = list(ps.labels.values())[0]
-        label = label[0].lower() + label[1:] # lowerCamelCase
-        id = URIRef("#" + label.replace(" ", ""))
+        label = label[0].upper() + label[1:] # lowerCamelCase
+        id = URIRef("#" + sh + quote(label.replace(" ","")))
         return id
 
 
@@ -36,6 +43,25 @@ def str2URIRef(namespaces, str):
         # TODO logging/exception warning that prefix not known
         print("Waring: prefix ", pre, " not in namespace list.")
         return URIRef(str)
+
+def convert_nodeKind(node_types):
+    """Return a shacl nodeKind IRI based on list of permitted node types."""
+    if ("IRI" in node_types) and ("BNode" in node_types) and ("Literal" in node_types):
+        return None
+    if ("IRI" in node_types) and ("BNode" in node_types):
+        return SH.BlankNodeOrIRI
+    elif ("IRI" in node_types) and ("Literal" in node_types):
+        return SH.IRIOrLiteral
+    elif ("BNode" in node_types) and ("Literal" in node_types):
+        return SH.BlankNodeOrLiteral
+    elif ("BNode" in node_types):
+        return SH.BlankNode
+    elif ("IRI" in node_types):
+        return SH.IRI
+    elif ("Literal" in node_types):
+        return SH.Literal
+    else:
+        return None
 
 
 class AP2SHACLConverter:
@@ -62,10 +88,10 @@ class AP2SHACLConverter:
             self.sg.add((shape_uri, RDF.type, SH.NodeShape))
             if shapeInfo[shape]["label"]:
                 label = Literal(shapeInfo[shape]["label"])
-                self.sg.add((shape_uri, RDFS.label, label))
+                self.sg.add((shape_uri, SH.name, label))
             if shapeInfo[shape]["comment"]:
                 comment = Literal(shapeInfo[shape]["comment"])
-                self.sg.add((shape_uri, RDFS.comment, comment))
+                self.sg.add((shape_uri, SH.description, comment))
             if shapeInfo[shape]["target"] and shapeInfo[shape]["targetType"]:
                 target = str2URIRef(self.ap.namespaces, shapeInfo[shape]["target"])
                 if shapeInfo[shape]["targetType"].lower() == "class":
@@ -82,10 +108,61 @@ class AP2SHACLConverter:
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         for ps in self.ap.propertyStatements:
             ps_id = make_property_shape_id(ps)
-            if ps.repeatable:
-                pass # nothing else to do
+            print(ps_id)
+            if ps.severity == "":
+                severity = Literal("Info")
             else:
-                pass # create Property shape to assert uniqueness
+                severity = Literal(ps.severity)
+            if ps.mandatory or not ps.repeatable:
+                ps_count_uri = URIRef(ps_id + "_count")
+                self.sg.add((ps_count_uri, RDF.type, SH.PropertyShape))
+                for property in ps.properties:
+                    path = str2URIRef(self.ap.namespaces, property)
+                    self.sg.add((ps_count_uri, SH.path, path))
+                for lang in ps.labels:
+                    name = Literal(ps.labels[lang], lang=lang)
+                    self.sg.add((ps_count_uri, SH.name, name))
+                if ps.mandatory:
+                    self.sg.add((ps_count_uri, SH.minCount, Literal(1)))
+                if not ps.repeatable:
+                    self.sg.add((ps_count_uri, SH.maxCount, Literal(1)))
+                for sh in ps.shapes:
+                    self.sg.add((URIRef(sh), SH.property, ps_count_uri))
+                self.sg.add(((ps_count_uri, SH.severity, severity)))
+            ps_kind_uri = URIRef(ps_id + "_value")
+            self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
+            for property in ps.properties:
+                path = str2URIRef(self.ap.namespaces, property)
+                self.sg.add((ps_kind_uri, SH.path, path))
+            self.sg.add(((ps_kind_uri, SH.severity, severity)))
+            if ps.valueNodeTypes != []:
+                nodeKind = convert_nodeKind(ps.valueNodeTypes)
+                self.sg.add((ps_kind_uri, SH.nodeKind, nodeKind))
+            if ps.valueDataTypes != []:
+                for valueDataType in ps.valueDataTypes:
+                    datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
+                    self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
+            if ps.valueConstraints != []:
+                sh_constraint_type, constraint= self.convert_valueConstraints(ps)
+                self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
+
+
+    def convert_valueConstraints(self, ps):
+        """Return SHACL value constraint type and constraint from property statement."""
+        constraints = ps.valueConstraints
+        constraint_type = ps.valueConstraintType
+        node_kind = convert_nodeKind(ps.valueNodeTypes)
+        if (len(constraints) > 1) or  constraint_type == "picklist":
+            # TODO: process as sh:OR
+            pass
+        elif constraint_type == "":
+            if "Literal" in ps.valueNodeTypes:
+                constraint = Literal(constraints[0])
+            elif "IRI" in ps.valueNodeTypes:
+                constraint = str2URIRef(self.ap.namespaces, constraints[0])
+            else:
+                raise Exception("Incompatible node kind and constraint.")
+            return (SH.hasValue, constraint)
 
 
     def dump_shacl(self):
