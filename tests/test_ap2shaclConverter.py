@@ -16,6 +16,8 @@ def name_ps():
     ps.add_repeatable(True)
     ps.add_valueNodeType("Literal")
     ps.add_valueDataType("xsd:string")
+    ps.add_valueConstraintType("pattern")
+    ps.add_valueConstraint("/[^W]*/")
     ps.add_severity("Violation")
     return ps
 

@@ -9,7 +9,6 @@ from urllib.parse import quote
 def make_property_shape_id(ps):
     """Return a URI id based on a property statement label & shape."""
     # TODO: allow user to set preferences for which labels to use.
-    # TODO: make sure label is IRI safe before using it in URIRef
     if ps.shapes == []:
         sh = "_"
     else:
@@ -163,6 +162,8 @@ class AP2SHACLConverter:
             else:
                 raise Exception("Incompatible node kind and constraint.")
             return (SH.hasValue, constraint)
+        elif constraint_type == "pattern":
+            return (SH.pattern, Literal(constraints[0]))
 
 
     def dump_shacl(self):
