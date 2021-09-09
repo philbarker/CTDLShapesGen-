@@ -14,7 +14,7 @@ def make_property_shape_id(ps):
     else:
         # using first shld be enough to dismbiguate
         # need to avoid unnecessary #s
-        sh = quote(ps.shapes[0].replace("#","").replace(" ","").lower())
+        sh = quote(ps.shapes[0].replace("#", "").replace(" ", "").lower())
     if ps.labels == {}:
         id = "#" + sh + URIRef(str(uuid4()).lower())
         return id
@@ -26,8 +26,8 @@ def make_property_shape_id(ps):
             label = ps.labels["en-US"]
         else:  # just pull the first one that's found
             label = list(ps.labels.values())[0]
-        label = label[0].upper() + label[1:] # lowerCamelCase
-        id = URIRef("#" + sh + quote(label.replace(" ","")))
+        label = label[0].upper() + label[1:]  # lowerCamelCase
+        id = URIRef("#" + sh + quote(label.replace(" ", "")))
         return id
 
 
@@ -43,6 +43,7 @@ def str2URIRef(namespaces, str):
         print("Waring: prefix ", pre, " not in namespace list.")
         return URIRef(str)
 
+
 def convert_nodeKind(node_types):
     """Return a shacl nodeKind IRI based on list of permitted node types."""
     if ("IRI" in node_types) and ("BNode" in node_types) and ("Literal" in node_types):
@@ -53,11 +54,11 @@ def convert_nodeKind(node_types):
         return SH.IRIOrLiteral
     elif ("BNode" in node_types) and ("Literal" in node_types):
         return SH.BlankNodeOrLiteral
-    elif ("BNode" in node_types):
+    elif "BNode" in node_types:
         return SH.BlankNode
-    elif ("IRI" in node_types):
+    elif "IRI" in node_types:
         return SH.IRI
-    elif ("Literal" in node_types):
+    elif "Literal" in node_types:
         return SH.Literal
     else:
         return None
@@ -142,16 +143,15 @@ class AP2SHACLConverter:
                     datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
                     self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
             if ps.valueConstraints != []:
-                sh_constraint_type, constraint= self.convert_valueConstraints(ps)
+                sh_constraint_type, constraint = self.convert_valueConstraints(ps)
                 self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
-
 
     def convert_valueConstraints(self, ps):
         """Return SHACL value constraint type and constraint from property statement."""
         constraints = ps.valueConstraints
         constraint_type = ps.valueConstraintType
         node_kind = convert_nodeKind(ps.valueNodeTypes)
-        if (len(constraints) > 1) or  constraint_type == "picklist":
+        if (len(constraints) > 1) or constraint_type == "picklist":
             # TODO: process as sh:OR
             pass
         elif constraint_type == "":
@@ -164,7 +164,6 @@ class AP2SHACLConverter:
             return (SH.hasValue, constraint)
         elif constraint_type == "pattern":
             return (SH.pattern, Literal(constraints[0]))
-
 
     def dump_shacl(self):
         """Print the SHACL Graph in Turtle."""
