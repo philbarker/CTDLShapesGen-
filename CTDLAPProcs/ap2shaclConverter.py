@@ -109,17 +109,7 @@ class AP2SHACLConverter:
         for ps in self.ap.propertyStatements:
             ps_id = make_property_shape_id(ps)
             print(ps_id)
-            if ps.severity == "":
-                severity = Literal("Info")
-            elif ps.severity.lower() == "info":
-                severity = SH.Info
-            elif ps.severity.lower() == "warning":
-                severity = SH.Warning
-            elif ps.severity.lower() == "violation":
-                severity = SH.Violation
-            else:
-                msg = "severity not recognised: " + ps.severity
-                raise Exception(msg)
+            severity = self.convert_severity(ps.severity)
             ps_kind_uri = URIRef(ps_id + "_value")
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
             for lang in ps.labels:
@@ -154,6 +144,20 @@ class AP2SHACLConverter:
                 for sh in ps.shapes:
                     self.sg.add((URIRef(sh), SH.property, ps_count_uri))
                 self.sg.add(((ps_count_uri, SH.severity, severity)))
+
+    def convert_severity(self, severity):
+        """Return SHACL value for severity based on string."""
+        if severity == "":
+            return Literal("Info")
+        elif severity.lower() == "info":
+            return SH.Info
+        elif severity.lower() == "warning":
+            return SH.Warning
+        elif severity.lower() == "violation":
+            return SH.Violation
+        else:
+            msg = "severity not recognised: " + ps.severity
+            raise Exception(msg)
 
     def convert_valueConstraints(self, ps):
         """Return SHACL value constraint type and constraint from property statement."""
