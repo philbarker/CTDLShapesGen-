@@ -145,7 +145,7 @@ def address_type_ps():
 def person_shapeInfo():
     shapeInfo = {
         "label": "Person shape",
-        "comment": "Just a shape for tests",
+        "comment": "A shape for tests",
         "target": "schema:Person",
         "targetType": "class",
         "mandatory": True,
@@ -156,7 +156,7 @@ def person_shapeInfo():
         [
             (URIRef("#Person"), RDF.type, SH.NodeShape),
             (URIRef("#Person"), SH.name, Literal("Person shape")),
-            (URIRef("#Person"), SH.description, Literal("Just a shape for tests")),
+            (URIRef("#Person"), SH.description, Literal("A shape for tests")),
             (URIRef("#Person"), SH.targetClass, schema.Person),
         ]
     )
@@ -167,7 +167,7 @@ def person_shapeInfo():
 def address_shapeInfo():
     shapeInfo = {
         "label": "Address shape",
-        "comment": "Just a shape for tests",
+        "comment": "A shape for tests",
         "target": "schema:address",
         "targetType": "ObjectsOf",
         "mandatory": False,
@@ -178,7 +178,7 @@ def address_shapeInfo():
         [
             (URIRef("#Address"), RDF.type, SH.NodeShape),
             (URIRef("#Address"), SH.name, Literal("Address shape")),
-            (URIRef("#Address"), SH.description, Literal("Just a shape for tests")),
+            (URIRef("#Address"), SH.description, Literal("A shape for tests")),
         ]
     )
     return shapeInfo
