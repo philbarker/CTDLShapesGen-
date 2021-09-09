@@ -1,8 +1,11 @@
 import pytest
 from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, make_property_shape_id
-from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
+from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, XSD, SH
 
 schema = Namespace("https://schema.org/")
+SDO = Namespace("https://schema.org/")
+
+expected_triples = []
 
 
 @pytest.fixture(scope="module")
@@ -12,13 +15,26 @@ def name_ps():
     ps.add_property("schema:name")
     ps.add_label("en", "Name")
     ps.add_label("es", "Nombre")
-    ps.add_mandatory(True)
-    ps.add_repeatable(True)
     ps.add_valueNodeType("Literal")
     ps.add_valueDataType("xsd:string")
-    ps.add_valueConstraintType("pattern")
-    ps.add_valueConstraint("/[^W]*/")
+    ps.add_valueConstraintType("minLength")
+    ps.add_valueConstraint("2")
+    ps.add_mandatory(True)
+    ps.add_repeatable(True)
     ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#personName_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_value"), SH.name, Literal("Name", lang="en")),
+            (URIRef("#personName_value"), SH.name, Literal("Nombre", lang="es")),
+            (URIRef("#personName_value"), SH.datatype, XSD.string),
+            (URIRef("#personName_value"), SH.minLength, Literal(2)),
+            (URIRef("#personName_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_count"), SH.minCount, Literal(1)),
+            (URIRef("#personName_count"), SH.severity, SH.Violation),
+            (URIRef("#personName_value"), SH.severity, SH.Violation),
+        ]
+    )
     return ps
 
 
@@ -33,6 +49,19 @@ def person_type_ps():
     ps.add_valueNodeType("IRI")
     ps.add_valueConstraint("schema:Person")
     ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#personType_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personType_value"), SH.name, Literal("Type", lang="en")),
+            (URIRef("#personType_value"), SH.nodeKind, SH.IRI),
+            (URIRef("#personType_value"), SH.hasValue, SDO.Person),
+            (URIRef("#personType_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personType_count"), SH.minCount, Literal(1)),
+            (URIRef("#personType_count"), SH.maxCount, Literal(1)),
+            (URIRef("#personType_count"), SH.severity, SH.Violation),
+            (URIRef("#personType_value"), SH.severity, SH.Violation),
+        ]
+    )
     return ps
 
 
@@ -48,6 +77,15 @@ def address_ps():
     ps.add_valueNodeType("BNode")
     ps.add_valueShape("#Address")
     ps.add_severity("Warning")
+    expected_triples.extend(
+        [
+            (URIRef("#personAddress_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personAddress_value"), SH.name, Literal("Address", lang="en")),
+            (URIRef("#personAddress_value"), SH.nodeKind, SH.BlankNodeOrIRI),
+            (URIRef("#Address"), SH.targetObjectsOf, SDO.address),
+            (URIRef("#personAddress_value"), SH.severity, SH.Warning),
+        ]
+    )
     return ps
 
 
@@ -62,6 +100,19 @@ def address_type_ps():
     ps.add_valueNodeType("IRI")
     ps.add_valueConstraint("schema:Address")
     ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#addressType_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressType_value"), SH.name, Literal("Type", lang="en")),
+            (URIRef("#addressType_value"), SH.nodeKind, SH.IRI),
+            (URIRef("#addressType_value"), SH.hasValue, SDO.Address),
+            (URIRef("#addressType_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressType_count"), SH.minCount, Literal(1)),
+            (URIRef("#addressType_count"), SH.maxCount, Literal(1)),
+            (URIRef("#addressType_count"), SH.severity, SH.Violation),
+            (URIRef("#addressType_value"), SH.severity, SH.Violation),
+        ]
+    )
     return ps
 
 
@@ -76,6 +127,14 @@ def person_shapeInfo():
         "severity": "Warning",
         "properties": ["name", "address"],
     }
+    expected_triples.extend(
+        [
+            (URIRef("#Person"), RDF.type, SH.NodeShape),
+            (URIRef("#Person"), SH.name, Literal("Person shape")),
+            (URIRef("#Person"), SH.description, Literal("Just a shape for tests")),
+            (URIRef("#Person"), SH.targetClass, schema.Person),
+        ]
+    )
     return shapeInfo
 
 
@@ -90,6 +149,13 @@ def address_shapeInfo():
         "severity": "Warning",
         "properties": [],
     }
+    expected_triples.extend(
+        [
+            (URIRef("#Address"), RDF.type, SH.NodeShape),
+            (URIRef("#Address"), SH.name, Literal("Address shape")),
+            (URIRef("#Address"), SH.description, Literal("Just a shape for tests")),
+        ]
+    )
     return shapeInfo
 
 
@@ -145,19 +211,5 @@ def test_ap2shaclInit(simple_ap):
     all_ns = [n for n in converter.sg.namespace_manager.namespaces()]
     assert ("schema", URIRef("https://schema.org/")) in all_ns
     assert ("sh", URIRef("http://www.w3.org/ns/shacl#")) in all_ns
-    expected_triples = [
-        (URIRef("#Person"), RDF.type, SH.NodeShape),
-        (URIRef("#Person"), RDFS.label, Literal("Person shape")),
-        (URIRef("#Person"), RDFS.comment, Literal("Just a shape for tests")),
-        (URIRef("#Person"), SH.targetClass, schema.Person),
-        (URIRef("#Address"), RDF.type, SH.NodeShape),
-        (URIRef("#Address"), RDFS.label, Literal("Address shape")),
-        (URIRef("#Address"), RDFS.comment, Literal("Just a shape for tests")),
-        (URIRef("#Address"), SH.targetObjectsOf, schema.address),
-    ]
     for t in expected_triples:
         assert t in converter.sg
-    assert False
-
-
-# assert False

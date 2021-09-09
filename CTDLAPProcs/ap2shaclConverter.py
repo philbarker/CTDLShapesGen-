@@ -111,26 +111,20 @@ class AP2SHACLConverter:
             print(ps_id)
             if ps.severity == "":
                 severity = Literal("Info")
+            elif ps.severity.lower() == "info":
+                severity = SH.Info
+            elif ps.severity.lower() == "warning":
+                severity = SH.Warning
+            elif ps.severity.lower() == "violation":
+                severity = SH.Violation
             else:
-                severity = Literal(ps.severity)
-            if ps.mandatory or not ps.repeatable:
-                ps_count_uri = URIRef(ps_id + "_count")
-                self.sg.add((ps_count_uri, RDF.type, SH.PropertyShape))
-                for property in ps.properties:
-                    path = str2URIRef(self.ap.namespaces, property)
-                    self.sg.add((ps_count_uri, SH.path, path))
-                for lang in ps.labels:
-                    name = Literal(ps.labels[lang], lang=lang)
-                    self.sg.add((ps_count_uri, SH.name, name))
-                if ps.mandatory:
-                    self.sg.add((ps_count_uri, SH.minCount, Literal(1)))
-                if not ps.repeatable:
-                    self.sg.add((ps_count_uri, SH.maxCount, Literal(1)))
-                for sh in ps.shapes:
-                    self.sg.add((URIRef(sh), SH.property, ps_count_uri))
-                self.sg.add(((ps_count_uri, SH.severity, severity)))
+                msg = "severity not recognised: " + ps.severity
+                raise Exception(msg)
             ps_kind_uri = URIRef(ps_id + "_value")
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
+            for lang in ps.labels:
+                name = Literal(ps.labels[lang], lang=lang)
+                self.sg.add((ps_kind_uri, SH.name, name))
             for property in ps.properties:
                 path = str2URIRef(self.ap.namespaces, property)
                 self.sg.add((ps_kind_uri, SH.path, path))
@@ -145,6 +139,21 @@ class AP2SHACLConverter:
             if ps.valueConstraints != []:
                 sh_constraint_type, constraint = self.convert_valueConstraints(ps)
                 self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
+            if ps.mandatory or not ps.repeatable:
+                # Need separate property shape check that property is used correct number of times.
+                # Has to separated from other checks as failing ones of those might lead to wrong result on uniqueness.
+                ps_count_uri = URIRef(ps_id + "_count")
+                self.sg.add((ps_count_uri, RDF.type, SH.PropertyShape))
+                for property in ps.properties:
+                    path = str2URIRef(self.ap.namespaces, property)
+                    self.sg.add((ps_count_uri, SH.path, path))
+                if ps.mandatory:
+                    self.sg.add((ps_count_uri, SH.minCount, Literal(1)))
+                if not ps.repeatable:
+                    self.sg.add((ps_count_uri, SH.maxCount, Literal(1)))
+                for sh in ps.shapes:
+                    self.sg.add((URIRef(sh), SH.property, ps_count_uri))
+                self.sg.add(((ps_count_uri, SH.severity, severity)))
 
     def convert_valueConstraints(self, ps):
         """Return SHACL value constraint type and constraint from property statement."""
@@ -164,6 +173,12 @@ class AP2SHACLConverter:
             return (SH.hasValue, constraint)
         elif constraint_type == "pattern":
             return (SH.pattern, Literal(constraints[0]))
+        elif constraint_type == "minLength":
+            min_length = int(constraints[0])
+            return (SH.minLength, Literal(min_length))
+        else:
+            msg = "unknown type of value constraint: " + constraint_type
+            raise Exception(msg)
 
     def dump_shacl(self):
         """Print the SHACL Graph in Turtle."""
