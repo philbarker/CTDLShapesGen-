@@ -129,6 +129,9 @@ class AP2SHACLConverter:
             if ps.valueConstraints != []:
                 sh_constraint_type, constraint = self.convert_valueConstraints(ps)
                 self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
+            if ps.valueShapes != []:
+                for shape in ps.valueShapes:
+                    self.sg.add((ps_kind_uri, SH.node, URIRef(shape)))
             if ps.mandatory or not ps.repeatable:
                 # Need separate property shape check that property is used correct number of times.
                 # Has to separated from other checks as failing ones of those might lead to wrong result on uniqueness.

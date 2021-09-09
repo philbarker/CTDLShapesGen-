@@ -1,9 +1,10 @@
 import pytest
 from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, make_property_shape_id
-from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, XSD, SH
+from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
 
 schema = Namespace("https://schema.org/")
 SDO = Namespace("https://schema.org/")
+XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
 
 expected_triples = []
 
@@ -107,7 +108,7 @@ def address_ps():
             (URIRef("#personAddress_value"), RDF.type, SH.PropertyShape),
             (URIRef("#personAddress_value"), SH.name, Literal("Address", lang="en")),
             (URIRef("#personAddress_value"), SH.nodeKind, SH.BlankNodeOrIRI),
-            (URIRef("#Address"), SH.targetObjectsOf, SDO.address),
+            (URIRef("#personAddress_value"), SH.node, URIRef("#Address")),
             (URIRef("#personAddress_value"), SH.severity, SH.Warning),
         ]
     )
@@ -179,6 +180,7 @@ def address_shapeInfo():
             (URIRef("#Address"), RDF.type, SH.NodeShape),
             (URIRef("#Address"), SH.name, Literal("Address shape")),
             (URIRef("#Address"), SH.description, Literal("A shape for tests")),
+            (URIRef("#Address"), SH.targetObjectsOf, SDO.address),
         ]
     )
     return shapeInfo
