@@ -176,6 +176,9 @@ class AP2SHACLConverter:
         elif constraint_type == "minLength":
             min_length = int(constraints[0])
             return (SH.minLength, Literal(min_length))
+        elif constraint_type == "maxLength":
+            min_length = int(constraints[0])
+            return (SH.maxLength, Literal(min_length))
         else:
             msg = "unknown type of value constraint: " + constraint_type
             raise Exception(msg)

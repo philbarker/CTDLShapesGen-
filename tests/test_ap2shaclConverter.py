@@ -38,6 +38,31 @@ def name_ps():
     return ps
 
 
+def description_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("schema:description")
+    ps.add_valueNodeType("Literal")
+    ps.add_valueDataType("xsd:string")
+    ps.add_valueConstraintType("maxLength")
+    ps.add_valueConstraint("1024")
+    ps.add_mandatory(False)
+    ps.add_repeatable(False)
+    ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#personName_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_value"), SH.datatype, XSD.string),
+            (URIRef("#personName_value"), SH.maxLength, Literal(1024)),
+            (URIRef("#personName_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_count"), SH.maxCount, Literal(1)),
+            (URIRef("#personName_count"), SH.severity, SH.Violation),
+            (URIRef("#personName_value"), SH.severity, SH.Violation),
+        ]
+    )
+    return ps
+
+
 @pytest.fixture(scope="module")
 def person_type_ps():
     ps = PropertyStatement()
@@ -125,7 +150,7 @@ def person_shapeInfo():
         "targetType": "class",
         "mandatory": True,
         "severity": "Warning",
-        "properties": ["name", "address"],
+        "properties": ["name", "address", "description"],
     }
     expected_triples.extend(
         [
