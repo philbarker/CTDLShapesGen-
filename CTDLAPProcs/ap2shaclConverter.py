@@ -108,7 +108,6 @@ class AP2SHACLConverter:
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         for ps in self.ap.propertyStatements:
             ps_id = make_property_shape_id(ps)
-            print(ps_id)
             severity = self.convert_severity(ps.severity)
             ps_kind_uri = URIRef(ps_id + "_value")
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
