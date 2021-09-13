@@ -125,9 +125,15 @@ class AP2SHACLConverter:
                 for valueDataType in ps.valueDataTypes:
                     datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
                     self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
-            if ps.valueConstraints != []:
-                sh_constraint_type, constraint = self.convert_valueConstraints(ps)
+            if (len(ps.valueConstraints) > 1):
+                # TODO: process as sh:in
+                print(">1 constraint: ", ps.valueConstraints)
+            elif len(ps.valueConstraints) == 1:
+                sh_constraint_type, constraint = self.convert_valueConstraint(ps)
                 self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
+            else: # no value constraints to add
+                pass
+
             if ps.valueShapes != []:
                 for shape in ps.valueShapes:
                     self.sg.add((ps_kind_uri, SH.node, URIRef(shape)))
@@ -161,15 +167,12 @@ class AP2SHACLConverter:
             msg = "severity not recognised: " + ps.severity
             raise Exception(msg)
 
-    def convert_valueConstraints(self, ps):
-        """Return SHACL value constraint type and constraint from property statement."""
+    def convert_valueConstraint(self, ps):
+        """Return SHACL value constraint type and constraint from property statement with single valueConstraint."""
         constraints = ps.valueConstraints
         constraint_type = ps.valueConstraintType
         node_kind = convert_nodeKind(ps.valueNodeTypes)
-        if (len(constraints) > 1) or constraint_type == "picklist":
-            # TODO: process as sh:OR
-            pass
-        elif constraint_type == "":
+        if constraint_type == "":
             if "Literal" in ps.valueNodeTypes:
                 constraint = Literal(constraints[0])
             elif "IRI" in ps.valueNodeTypes:

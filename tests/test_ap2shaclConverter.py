@@ -3,9 +3,10 @@ from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, make_property_
 from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
 
 schema = Namespace("https://schema.org/")
-SDO = Namespace("https://schema.org/")
+SDO = Namespace("https://schema.org/")  # "httpS"
 XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
-
+# stoopid conflict of SH.in with python in
+SH_in = URIRef("http://www.w3.org/ns/shacl#in")
 expected_triples = []
 
 
@@ -141,6 +142,29 @@ def address_type_ps():
     )
     return ps
 
+@pytest.fixture(scope="module")
+def address_option_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Address")
+    ps.add_property("rdf:type")
+    ps.add_label("en", "Contact Option")
+    ps.add_mandatory(False)
+    ps.add_repeatable(True)
+    ps.add_valueNodeType("IRI")
+    ps.add_valueConstraint("schema:HearingImpairedSupported")
+    ps.add_valueConstraint("schema:TollFree")
+    ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#addressOption_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressOption_value"), SH.name, Literal("Contact Option", lang="en")),
+            (URIRef("#addressOption_value"), SH.nodeKind, SH.IRI),
+            (URIRef("#addressOption_value"), SH_in, SDO.HearingImpairedSupported),
+            (URIRef("#addressOption_value"), SH_in, SDO.TollFree),
+        ]
+    )
+    return ps
+
 
 @pytest.fixture(scope="module")
 def person_shapeInfo():
@@ -194,6 +218,7 @@ def simple_ap(
     address_ps,
     address_shapeInfo,
     address_type_ps,
+    address_option_ps
 ):
     ap = AP()
     ap.load_namespaces("InputData/namespaces.csv")
@@ -205,6 +230,7 @@ def simple_ap(
     ap.add_propertyStatement(address_ps)
     ap.add_shapeInfo("#Address", address_shapeInfo)
     ap.add_propertyStatement(address_type_ps)
+    ap.add_propertyStatement(address_option_ps)
 
     return ap
 
@@ -240,3 +266,4 @@ def test_ap2shaclInit(simple_ap):
     assert ("sh", URIRef("http://www.w3.org/ns/shacl#")) in all_ns
     for t in expected_triples:
         assert t in converter.sg
+    assert False
