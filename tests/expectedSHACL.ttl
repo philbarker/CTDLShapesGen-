@@ -14,7 +14,7 @@
         schema:TollFree ;
     sh:name "Contact Option"@en ;
     sh:nodeKind sh:IRI ;
-    sh:path sdo:contactOption ;
+    sh:path schema:contactOption ;
     sh:severity sh:Violation .
 
 <#addressType_value> a sh:PropertyShape ;
