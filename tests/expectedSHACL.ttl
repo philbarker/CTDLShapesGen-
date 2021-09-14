@@ -9,6 +9,14 @@
         <#personType_count> ;
     sh:targetClass schema:Person .
 
+<#addressContactOption_value> a sh:PropertyShape ;
+    sh:in schema:HearingImpairedSupported,
+        schema:TollFree ;
+    sh:name "Contact Option"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:path sdo:contactOption ;
+    sh:severity sh:Violation .
+
 <#addressType_value> a sh:PropertyShape ;
     sh:hasValue schema:Address ;
     sh:name "Type"@en ;
@@ -61,4 +69,3 @@
     sh:minCount 1 ;
     sh:path rdf:type ;
     sh:severity sh:Violation .
-

@@ -27,11 +27,13 @@ def name_ps():
     expected_triples.extend(
         [
             (URIRef("#personName_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_value"), SH.path, SDO.name),
             (URIRef("#personName_value"), SH.name, Literal("Name", lang="en")),
             (URIRef("#personName_value"), SH.name, Literal("Nombre", lang="es")),
             (URIRef("#personName_value"), SH.datatype, XSD.string),
             (URIRef("#personName_value"), SH.minLength, Literal(2)),
             (URIRef("#personName_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personName_count"), SH.path, SDO.name),
             (URIRef("#personName_count"), SH.minCount, Literal(1)),
             (URIRef("#personName_count"), SH.severity, SH.Violation),
             (URIRef("#personName_value"), SH.severity, SH.Violation),
@@ -53,13 +55,15 @@ def description_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
-            (URIRef("#personName_value"), RDF.type, SH.PropertyShape),
-            (URIRef("#personName_value"), SH.datatype, XSD.string),
-            (URIRef("#personName_value"), SH.maxLength, Literal(1024)),
-            (URIRef("#personName_count"), RDF.type, SH.PropertyShape),
-            (URIRef("#personName_count"), SH.maxCount, Literal(1)),
-            (URIRef("#personName_count"), SH.severity, SH.Violation),
-            (URIRef("#personName_value"), SH.severity, SH.Violation),
+            (URIRef("#personDescription_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personDescription_value"), SH.path, SDO.description),
+            (URIRef("#personDescription_value"), SH.datatype, XSD.string),
+            (URIRef("#personDescription_value"), SH.maxLength, Literal(1024)),
+            (URIRef("#personDescription_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personDescription_count"), SH.path, SDO.description),
+            (URIRef("#personDescription_count"), SH.maxCount, Literal(1)),
+            (URIRef("#personDescription_count"), SH.severity, SH.Violation),
+            (URIRef("#personDescription_value"), SH.severity, SH.Violation),
         ]
     )
     return ps
@@ -79,10 +83,12 @@ def person_type_ps():
     expected_triples.extend(
         [
             (URIRef("#personType_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personType_value"), SH.path, RDF.type),
             (URIRef("#personType_value"), SH.name, Literal("Type", lang="en")),
             (URIRef("#personType_value"), SH.nodeKind, SH.IRI),
             (URIRef("#personType_value"), SH.hasValue, SDO.Person),
             (URIRef("#personType_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#personType_count"), SH.path, RDF.type),
             (URIRef("#personType_count"), SH.minCount, Literal(1)),
             (URIRef("#personType_count"), SH.maxCount, Literal(1)),
             (URIRef("#personType_count"), SH.severity, SH.Violation),
@@ -107,6 +113,7 @@ def address_ps():
     expected_triples.extend(
         [
             (URIRef("#personAddress_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personAddress_value"), SH.path, SDO.address),
             (URIRef("#personAddress_value"), SH.name, Literal("Address", lang="en")),
             (URIRef("#personAddress_value"), SH.nodeKind, SH.BlankNodeOrIRI),
             (URIRef("#personAddress_value"), SH.node, URIRef("#Address")),
@@ -130,10 +137,12 @@ def address_type_ps():
     expected_triples.extend(
         [
             (URIRef("#addressType_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressType_value"), SH.path, RDF.type),
             (URIRef("#addressType_value"), SH.name, Literal("Type", lang="en")),
             (URIRef("#addressType_value"), SH.nodeKind, SH.IRI),
             (URIRef("#addressType_value"), SH.hasValue, SDO.Address),
             (URIRef("#addressType_count"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressType_count"), SH.path, RDF.type),
             (URIRef("#addressType_count"), SH.minCount, Literal(1)),
             (URIRef("#addressType_count"), SH.maxCount, Literal(1)),
             (URIRef("#addressType_count"), SH.severity, SH.Violation),
@@ -146,7 +155,7 @@ def address_type_ps():
 def address_option_ps():
     ps = PropertyStatement()
     ps.add_shape("#Address")
-    ps.add_property("rdf:type")
+    ps.add_property("schema:contactOption")
     ps.add_label("en", "Contact Option")
     ps.add_mandatory(False)
     ps.add_repeatable(True)
@@ -157,6 +166,7 @@ def address_option_ps():
     expected_triples.extend(
         [
             (URIRef("#addressContactOption_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressContactOption_value"), SH.path, SDO.contactOption),
             (URIRef("#addressContactOption_value"), SH.name, Literal("Contact Option", lang="en")),
             (URIRef("#addressContactOption_value"), SH.nodeKind, SH.IRI),
             (URIRef("#addressContactOption_value"), SH_in, SDO.HearingImpairedSupported),
