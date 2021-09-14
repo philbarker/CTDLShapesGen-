@@ -5,6 +5,9 @@ from rdflib import SH, RDF, RDFS, XSD
 from uuid import uuid4
 from urllib.parse import quote
 
+# stoopid conflict of SH.in with python in
+SH_in = URIRef("http://www.w3.org/ns/shacl#in")
+
 
 def make_property_shape_id(ps):
     """Return a URI id based on a property statement label & shape."""
@@ -108,6 +111,7 @@ class AP2SHACLConverter:
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         for ps in self.ap.propertyStatements:
             ps_id = make_property_shape_id(ps)
+            print(ps_id)
             severity = self.convert_severity(ps.severity)
             ps_kind_uri = URIRef(ps_id + "_value")
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
@@ -125,12 +129,10 @@ class AP2SHACLConverter:
                 for valueDataType in ps.valueDataTypes:
                     datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
                     self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
-            if (len(ps.valueConstraints) > 1):
-                # TODO: process as sh:in
-                print(">1 constraint: ", ps.valueConstraints)
-            elif len(ps.valueConstraints) == 1:
-                sh_constraint_type, constraint = self.convert_valueConstraint(ps)
-                self.sg.add((ps_kind_uri, sh_constraint_type, constraint))
+            if ps.valueConstraints != []:
+                sh_constrnt_type, constrnts = self.convert_valConstraints(ps)
+                for c in constrnts:
+                    self.sg.add((ps_kind_uri, sh_constrnt_type, c))
             else: # no value constraints to add
                 pass
 
@@ -167,27 +169,39 @@ class AP2SHACLConverter:
             msg = "severity not recognised: " + ps.severity
             raise Exception(msg)
 
-    def convert_valueConstraint(self, ps):
-        """Return SHACL value constraint type and constraint from property statement with single valueConstraint."""
-        constraints = ps.valueConstraints
+    def convert_valConstraints(self, ps):
+        """Return SHACL value constraint type and list of constraints from property statement with single valueConstraint."""
+        valueConstraints = ps.valueConstraints
         constraint_type = ps.valueConstraintType
         node_kind = convert_nodeKind(ps.valueNodeTypes)
-        if constraint_type == "":
+        if constraint_type.lower == "picklist" or len(valueConstraints) > 1:
+            constraints = []
             if "Literal" in ps.valueNodeTypes:
-                constraint = Literal(constraints[0])
+                for c in valueConstraints:
+                    constraints.append(Literal(c))
             elif "IRI" in ps.valueNodeTypes:
-                constraint = str2URIRef(self.ap.namespaces, constraints[0])
+                for c in valueConstraints:
+                    constraints.append(str2URIRef(self.ap.namespaces, c))
             else:
                 raise Exception("Incompatible node kind and constraint.")
-            return (SH.hasValue, constraint)
+            return (SH_in, constraints)
+        elif constraint_type == "":
+            if "Literal" in ps.valueNodeTypes:
+                constraint = Literal(valueConstraints[0])
+            elif "IRI" in ps.valueNodeTypes:
+                constraint = str2URIRef(self.ap.namespaces, valueConstraints[0])
+            else:
+                raise Exception("Incompatible node kind and constraint.")
+            return (SH.hasValue, [constraint])
         elif constraint_type == "pattern":
-            return (SH.pattern, Literal(constraints[0]))
+            constraint = Literal(valueConstraints[0])
+            return (SH.pattern, [constraint])
         elif constraint_type == "minLength":
-            min_length = int(constraints[0])
-            return (SH.minLength, Literal(min_length))
+            constraint = Literal(int((valueConstraints[0])))
+            return (SH.minLength, [constraint])
         elif constraint_type == "maxLength":
-            min_length = int(constraints[0])
-            return (SH.maxLength, Literal(min_length))
+            constraint = Literal(int((valueConstraints[0])))
+            return (SH.maxLength, constraints)
         else:
             msg = "unknown type of value constraint: " + constraint_type
             raise Exception(msg)

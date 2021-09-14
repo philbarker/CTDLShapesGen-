@@ -156,11 +156,11 @@ def address_option_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
-            (URIRef("#addressOption_value"), RDF.type, SH.PropertyShape),
-            (URIRef("#addressOption_value"), SH.name, Literal("Contact Option", lang="en")),
-            (URIRef("#addressOption_value"), SH.nodeKind, SH.IRI),
-            (URIRef("#addressOption_value"), SH_in, SDO.HearingImpairedSupported),
-            (URIRef("#addressOption_value"), SH_in, SDO.TollFree),
+            (URIRef("#addressContactOption_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#addressContactOption_value"), SH.name, Literal("Contact Option", lang="en")),
+            (URIRef("#addressContactOption_value"), SH.nodeKind, SH.IRI),
+            (URIRef("#addressContactOption_value"), SH_in, SDO.HearingImpairedSupported),
+            (URIRef("#addressContactOption_value"), SH_in, SDO.TollFree),
         ]
     )
     return ps
@@ -258,7 +258,7 @@ def test_ap2shaclInit(simple_ap):
     assert "dct" in converter.ap.namespaces.keys()
     assert "rdf" in converter.ap.namespaces.keys()
     assert "sh" in converter.ap.namespaces.keys()
-    assert len(converter.ap.propertyStatements) == 4
+    assert len(converter.ap.propertyStatements) == 5
     assert len(converter.ap.shapeInfo) == 2
     assert type(converter.sg) == Graph
     all_ns = [n for n in converter.sg.namespace_manager.namespaces()]
