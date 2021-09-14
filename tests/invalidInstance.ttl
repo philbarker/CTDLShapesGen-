@@ -8,4 +8,4 @@
     sdo:address :myAddress .
 
 :myAddress a sdo:PostalAddress ;
-    sdo:contactOption "HearingImpaired"
+    sdo:contactOption "HearingImpaired" .
