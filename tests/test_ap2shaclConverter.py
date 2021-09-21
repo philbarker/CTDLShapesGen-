@@ -5,8 +5,9 @@ from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
 schema = Namespace("https://schema.org/")
 SDO = Namespace("https://schema.org/")  # "httpS"
 XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
-# stoopid conflict of SH.in with python in
+# stoopid conflicts python keywords in & class
 SH_in = URIRef("http://www.w3.org/ns/shacl#in")
+SH_class = URIRef("http://www.w3.org/ns/shacl#class")
 expected_triples = []
 
 
@@ -82,17 +83,7 @@ def person_type_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
-            (URIRef("#personType_value"), RDF.type, SH.PropertyShape),
-            (URIRef("#personType_value"), SH.path, RDF.type),
-            (URIRef("#personType_value"), SH.name, Literal("Type", lang="en")),
-            (URIRef("#personType_value"), SH.nodeKind, SH.IRI),
-            (URIRef("#personType_value"), SH.hasValue, SDO.Person),
-            (URIRef("#personType_count"), RDF.type, SH.PropertyShape),
-            (URIRef("#personType_count"), SH.path, RDF.type),
-            (URIRef("#personType_count"), SH.minCount, Literal(1)),
-            (URIRef("#personType_count"), SH.maxCount, Literal(1)),
-            (URIRef("#personType_count"), SH.severity, SH.Violation),
-            (URIRef("#personType_value"), SH.severity, SH.Violation),
+            (URIRef("#Person"), SH_class, SDO.Person),
         ]
     )
     return ps
@@ -136,20 +127,11 @@ def address_type_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
-            (URIRef("#addressType_value"), RDF.type, SH.PropertyShape),
-            (URIRef("#addressType_value"), SH.path, RDF.type),
-            (URIRef("#addressType_value"), SH.name, Literal("Type", lang="en")),
-            (URIRef("#addressType_value"), SH.nodeKind, SH.IRI),
-            (URIRef("#addressType_value"), SH.hasValue, SDO.Address),
-            (URIRef("#addressType_count"), RDF.type, SH.PropertyShape),
-            (URIRef("#addressType_count"), SH.path, RDF.type),
-            (URIRef("#addressType_count"), SH.minCount, Literal(1)),
-            (URIRef("#addressType_count"), SH.maxCount, Literal(1)),
-            (URIRef("#addressType_count"), SH.severity, SH.Violation),
-            (URIRef("#addressType_value"), SH.severity, SH.Violation),
+            (URIRef("#Address"), SH_class, SDO.Address),
         ]
     )
     return ps
+
 
 @pytest.fixture(scope="module")
 def address_option_ps():
@@ -167,9 +149,17 @@ def address_option_ps():
         [
             (URIRef("#addressContactOption_value"), RDF.type, SH.PropertyShape),
             (URIRef("#addressContactOption_value"), SH.path, SDO.contactOption),
-            (URIRef("#addressContactOption_value"), SH.name, Literal("Contact Option", lang="en")),
+            (
+                URIRef("#addressContactOption_value"),
+                SH.name,
+                Literal("Contact Option", lang="en"),
+            ),
             (URIRef("#addressContactOption_value"), SH.nodeKind, SH.IRI),
-            (URIRef("#addressContactOption_value"), SH_in, SDO.HearingImpairedSupported),
+            (
+                URIRef("#addressContactOption_value"),
+                SH_in,
+                SDO.HearingImpairedSupported,
+            ),
             (URIRef("#addressContactOption_value"), SH_in, SDO.TollFree),
         ]
     )
@@ -228,7 +218,7 @@ def simple_ap(
     address_ps,
     address_shapeInfo,
     address_type_ps,
-    address_option_ps
+    address_option_ps,
 ):
     ap = AP()
     ap.load_namespaces("InputData/namespaces.csv")

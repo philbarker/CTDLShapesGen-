@@ -5,8 +5,9 @@ from rdflib import SH, RDF, RDFS, XSD
 from uuid import uuid4
 from urllib.parse import quote
 
-# stoopid conflict of SH.in with python in
+# stoopid conflicts with python key words
 SH_in = URIRef("http://www.w3.org/ns/shacl#in")
+SH_class = URIRef("http://www.w3.org/ns/shacl#class")
 
 
 def make_property_shape_id(ps):
@@ -36,14 +37,18 @@ def make_property_shape_id(ps):
 
 def str2URIRef(namespaces, str):
     """Return a URIRef from a string that may be a URI or a curie."""
-    [pre, name] = str.split(":", 1)
-    if pre == ("http" or "https"):
-        return URIRef(str)
-    elif pre in namespaces.keys():
-        return URIRef(namespaces[pre] + name)
+    if ":" in str:
+        [pre, name] = str.split(":", 1)
+        if pre == ("http" or "https"):
+            return URIRef(str)
+        elif pre in namespaces.keys():
+            return URIRef(namespaces[pre] + name)
+        else:
+            # TODO logging/exception warning that prefix not known
+            print("Warning: prefix ", pre, " not in namespace list.")
+            return URIRef(str)
     else:
-        # TODO logging/exception warning that prefix not known
-        print("Waring: prefix ", pre, " not in namespace list.")
+        # there's no prefix, just a string to convert to URI
         return URIRef(str)
 
 
@@ -110,8 +115,16 @@ class AP2SHACLConverter:
     def convert_propertyStatements(self):
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         for ps in self.ap.propertyStatements:
+            if ps.properties == ["rdf:type"]:
+                # this is the way that TAP asserts objects must be of certain type, we can use sh:class instead
+                for shape in ps.shapes:
+                    shape_uri = str2URIRef(self.ap.namespaces, shape)
+                    print(shape)
+                    for vc in ps.valueConstraints:
+                        type_uri = str2URIRef(self.ap.namespaces, vc)
+                        self.sg.add((shape_uri, SH_class, type_uri))
+                continue
             ps_id = make_property_shape_id(ps)
-            print(ps_id)
             severity = self.convert_severity(ps.severity)
             ps_kind_uri = URIRef(ps_id + "_value")
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
@@ -133,7 +146,7 @@ class AP2SHACLConverter:
                 sh_constrnt_type, constrnts = self.convert_valConstraints(ps)
                 for c in constrnts:
                     self.sg.add((ps_kind_uri, sh_constrnt_type, c))
-            else: # no value constraints to add
+            else:  # no value constraints to add
                 pass
 
             if ps.valueShapes != []:
@@ -209,4 +222,8 @@ class AP2SHACLConverter:
     def dump_shacl(self):
         """Print the SHACL Graph in Turtle."""
         print("SHACL Dump:")
-        print(self.sg.serialize(format="turtle"))
+        print(
+            self.sg.serialize(
+                format="turtle",
+            )
+        )
