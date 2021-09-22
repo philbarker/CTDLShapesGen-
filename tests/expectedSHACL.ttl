@@ -1,28 +1,20 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdf: <http://www.w3.org/2000/01/rdf-schema#> .
 
 <#Person> a sh:NodeShape ;
+    sh:class schema:Person ;
     sh:description "A shape for tests" ;
     sh:name "Person shape" ;
-    sh:property <#personName_count>,
-        <#personType_count> ;
+    sh:property <#personName_count> ;
     sh:targetClass schema:Person .
 
 <#addressContactOption_value> a sh:PropertyShape ;
-    sh:in schema:HearingImpairedSupported,
-        schema:TollFree ;
+    sh:in (schema:HearingImpairedSupported,
+        schema:TollFree) ;
     sh:name "Contact Option"@en ;
     sh:nodeKind sh:IRI ;
     sh:path schema:contactOption ;
-    sh:severity sh:Violation .
-
-<#addressType_value> a sh:PropertyShape ;
-    sh:hasValue schema:Address ;
-    sh:name "Type"@en ;
-    sh:nodeKind sh:IRI ;
-    sh:path rdf:type ;
     sh:severity sh:Violation .
 
 <#personAddress_value> a sh:PropertyShape ;
@@ -41,32 +33,13 @@
     sh:path schema:name ;
     sh:severity sh:Violation .
 
-<#personType_value> a sh:PropertyShape ;
-    sh:hasValue schema:Person ;
-    sh:name "Type"@en ;
-    sh:nodeKind sh:IRI ;
-    sh:path rdf:type ;
-    sh:severity sh:Violation .
-
 <#Address> a sh:NodeShape ;
+    sh:class schema:Address ;
     sh:description "A shape for tests" ;
     sh:name "Address shape" ;
-    sh:property <#addressType_count> ;
     sh:targetObjectsOf schema:address .
-
-<#addressType_count> a sh:PropertyShape ;
-    sh:maxCount 1 ;
-    sh:minCount 1 ;
-    sh:path rdf:type ;
-    sh:severity sh:Violation .
 
 <#personName_count> a sh:PropertyShape ;
     sh:minCount 1 ;
     sh:path schema:name ;
-    sh:severity sh:Violation .
-
-<#personType_count> a sh:PropertyShape ;
-    sh:maxCount 1 ;
-    sh:minCount 1 ;
-    sh:path rdf:type ;
     sh:severity sh:Violation .
