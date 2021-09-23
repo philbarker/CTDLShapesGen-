@@ -1,7 +1,8 @@
 from .ap import AP
 from .propertyStatement import PropertyStatement
 from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib import SH, RDF, RDFS, XSD
+from rdflib import SH, RDF, RDFS, XSD, SDO
+from rdflib.collection import Collection
 from uuid import uuid4
 from urllib.parse import quote
 
@@ -35,21 +36,32 @@ def make_property_shape_id(ps):
         return id
 
 
-def str2URIRef(namespaces, str):
+def str2URIRef(namespaces, s):
     """Return a URIRef from a string that may be a URI or a curie."""
-    if ":" in str:
-        [pre, name] = str.split(":", 1)
+    if type(namespaces) is dict:
+        pass
+    else:
+        msg = "Namespaces should be a dictionary."
+        raise Exception(msg)
+    if type(s) is str:
+        pass
+    else:
+        msg = "value to convert should be a string."
+        print(type(s))
+        raise Exception(msg)
+    if ":" in s:
+        [pre, name] = s.split(":", 1)
         if pre == ("http" or "https"):
-            return URIRef(str)
+            return URIRef(s)
         elif pre in namespaces.keys():
             return URIRef(namespaces[pre] + name)
         else:
             # TODO logging/exception warning that prefix not known
             print("Warning: prefix ", pre, " not in namespace list.")
-            return URIRef(str)
+            return URIRef(s)
     else:
         # there's no prefix, just a string to convert to URI
-        return URIRef(str)
+        return URIRef(s)
 
 
 def convert_nodeKind(node_types):
@@ -70,6 +82,39 @@ def convert_nodeKind(node_types):
         return SH.Literal
     else:
         return None
+
+
+def list2RDFList(g, list, node_type, namespaces):
+    """Convert a python list to an RDF list of items with specified node type"""
+    # Currently only deals with lists that are all Literals or all IRIs
+    if not (node_type in ["Literal", "IRI"]):
+        msg = "Node type " + node_type + " unknown."
+        raise Exception(msg)
+    # useful to id list start node for testing
+    if type(list[0]) is str:
+        start_node_id = list[0].replace(":", "-")
+        start_node_id = start_node_id.replace(" ", "-")
+        start_node_id = start_node_id.replace("_", "-")
+    elif (type(list[0]) is int) or (type(list[0]) is float):
+        start_node_id = list[0]
+    else:
+        start_node_id = None
+    print(start_node_id)
+    start_node = BNode(start_node_id)
+    current_node = start_node
+    for item in list:
+        if node_type == "Literal":
+            g.add((current_node, RDF.first, Literal(item)))
+        elif node_type == "IRI":
+            item_uri = str2URIRef(namespaces, item)
+            g.add((current_node, RDF.first, item_uri))
+        if item == list[-1]:  # it's the last item
+            g.add((current_node, RDF.rest, RDF.nil))
+        else:
+            next_node = BNode()
+            g.add((current_node, RDF.rest, next_node))
+            current_node = next_node
+    return start_node
 
 
 class AP2SHACLConverter:
@@ -119,7 +164,6 @@ class AP2SHACLConverter:
                 # this is the way that TAP asserts objects must be of certain type, we can use sh:class instead
                 for shape in ps.shapes:
                     shape_uri = str2URIRef(self.ap.namespaces, shape)
-                    print(shape)
                     for vc in ps.valueConstraints:
                         type_uri = str2URIRef(self.ap.namespaces, vc)
                         self.sg.add((shape_uri, SH_class, type_uri))
@@ -188,16 +232,17 @@ class AP2SHACLConverter:
         constraint_type = ps.valueConstraintType
         node_kind = convert_nodeKind(ps.valueNodeTypes)
         if constraint_type.lower == "picklist" or len(valueConstraints) > 1:
-            constraints = []
             if "Literal" in ps.valueNodeTypes:
-                for c in valueConstraints:
-                    constraints.append(Literal(c))
+                constraint_list = list2RDFList(
+                    self.sg, valueConstraints, "Literal", self.ap.namespaces
+                )
             elif "IRI" in ps.valueNodeTypes:
-                for c in valueConstraints:
-                    constraints.append(str2URIRef(self.ap.namespaces, c))
+                constraint_list = list2RDFList(
+                    self.sg, valueConstraints, "IRI", self.ap.namespaces
+                )
             else:
                 raise Exception("Incompatible node kind and constraint.")
-            return (SH_in, constraints)
+            return (SH_in, [constraint_list])  # return a list of one RDFList
         elif constraint_type == "":
             if "Literal" in ps.valueNodeTypes:
                 constraint = Literal(valueConstraints[0])
@@ -222,8 +267,4 @@ class AP2SHACLConverter:
     def dump_shacl(self):
         """Print the SHACL Graph in Turtle."""
         print("SHACL Dump:")
-        print(
-            self.sg.serialize(
-                format="turtle",
-            )
-        )
+        print(self.sg.serialize(format="turtle"))

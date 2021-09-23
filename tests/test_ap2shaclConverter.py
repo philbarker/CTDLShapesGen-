@@ -1,12 +1,19 @@
 import pytest
-from CTDLAPProcs import AP, PropertyStatement, AP2SHACLConverter, make_property_shape_id
-from rdflib import Graph, URIRef, Literal, Namespace, RDF, RDFS, SH
+from CTDLAPProcs import (
+    AP,
+    PropertyStatement,
+    AP2SHACLConverter,
+    make_property_shape_id,
+    list2RDFList,
+)
+from rdflib import Graph, URIRef, Literal, BNode, Namespace, RDF, RDFS, SH
 
 schema = Namespace("https://schema.org/")
 SDO = Namespace("https://schema.org/")  # "httpS"
 XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
 # stoopid conflicts python keywords in & class
 SH_in = URIRef("http://www.w3.org/ns/shacl#in")
+SH_or = URIRef("http://www.w3.org/ns/shacl#or")
 SH_class = URIRef("http://www.w3.org/ns/shacl#class")
 expected_triples = []
 
@@ -158,9 +165,13 @@ def address_option_ps():
             (
                 URIRef("#addressContactOption_value"),
                 SH_in,
-                SDO.HearingImpairedSupported,
+                BNode("schema-HearingImpairedSupported"),
             ),
-            (URIRef("#addressContactOption_value"), SH_in, SDO.TollFree),
+            (
+                BNode("schema-HearingImpairedSupported"),
+                RDF.first,
+                URIRef("https://schema.org/HearingImpairedSupported"),
+            ),
         ]
     )
     return ps
@@ -233,6 +244,26 @@ def simple_ap(
     ap.add_propertyStatement(address_option_ps)
 
     return ap
+
+
+def test_list2RDFList():
+    g = Graph()
+    list = [1, 2, 3]
+    node_type = "Literal"
+    namespaces = {}
+    start_node = list2RDFList(g, list, node_type, namespaces)
+    g.add((SDO.name, SH_in, start_node))
+    expected_ttl = "<https://schema.org/name> ns1:in ( 1 2 3 )"
+    assert expected_ttl in g.serialize(format="turtle")
+    g = Graph()
+    list = ["sdo:address", "sdo:email", "sdo:contactOption"]
+    node_type = "IRI"
+    namespaces = {"sdo": "https://schema.org/"}
+    start_node = list2RDFList(g, list, node_type, namespaces)
+    g.add((URIRef("#cont"), SH_or, start_node))
+    print(g.serialize(format="turtle"))
+    expected_ttl = "<#cont> ns1:or ( <https://schema.org/address> <https://schema.org/email> <https://schema.org/contactOption> )"
+    assert expected_ttl in g.serialize(format="turtle")
 
 
 def test_make_property_shape_id():

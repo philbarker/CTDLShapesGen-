@@ -1,3 +1,4 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -10,8 +11,7 @@
     sh:targetClass schema:Person .
 
 <#addressContactOption_value> a sh:PropertyShape ;
-    sh:in (schema:HearingImpairedSupported,
-        schema:TollFree) ;
+    sh:in ( schema:HearingImpairedSupported schema:TollFree ) ;
     sh:name "Contact Option"@en ;
     sh:nodeKind sh:IRI ;
     sh:path schema:contactOption ;
