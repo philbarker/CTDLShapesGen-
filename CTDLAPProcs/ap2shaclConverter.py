@@ -171,6 +171,8 @@ class AP2SHACLConverter:
             ps_id = make_property_shape_id(ps)
             severity = self.convert_severity(ps.severity)
             ps_kind_uri = URIRef(ps_id + "_value")
+            for sh in ps.shapes:
+                self.sg.add((URIRef(sh), SH.property, ps_kind_uri))
             self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
             for lang in ps.labels:
                 name = Literal(ps.labels[lang], lang=lang)

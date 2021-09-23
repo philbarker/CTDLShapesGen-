@@ -34,12 +34,14 @@ def name_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
+            (URIRef("#Person"), SH.property, URIRef("#personName_value")),
             (URIRef("#personName_value"), RDF.type, SH.PropertyShape),
             (URIRef("#personName_value"), SH.path, SDO.name),
             (URIRef("#personName_value"), SH.name, Literal("Name", lang="en")),
             (URIRef("#personName_value"), SH.name, Literal("Nombre", lang="es")),
             (URIRef("#personName_value"), SH.datatype, XSD.string),
             (URIRef("#personName_value"), SH.minLength, Literal(2)),
+            (URIRef("#Person"), SH.property, URIRef("#personName_count")),
             (URIRef("#personName_count"), RDF.type, SH.PropertyShape),
             (URIRef("#personName_count"), SH.path, SDO.name),
             (URIRef("#personName_count"), SH.minCount, Literal(1)),
@@ -63,10 +65,12 @@ def description_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
+            (URIRef("#Person"), SH.property, URIRef("#personDescription_value")),
             (URIRef("#personDescription_value"), RDF.type, SH.PropertyShape),
             (URIRef("#personDescription_value"), SH.path, SDO.description),
             (URIRef("#personDescription_value"), SH.datatype, XSD.string),
             (URIRef("#personDescription_value"), SH.maxLength, Literal(1024)),
+            (URIRef("#Person"), SH.property, URIRef("#personDescription_count")),
             (URIRef("#personDescription_count"), RDF.type, SH.PropertyShape),
             (URIRef("#personDescription_count"), SH.path, SDO.description),
             (URIRef("#personDescription_count"), SH.maxCount, Literal(1)),
@@ -110,6 +114,7 @@ def address_ps():
     ps.add_severity("Warning")
     expected_triples.extend(
         [
+            (URIRef("#Person"), SH.property, URIRef("#personAddress_value")),
             (URIRef("#personAddress_value"), RDF.type, SH.PropertyShape),
             (URIRef("#personAddress_value"), SH.path, SDO.address),
             (URIRef("#personAddress_value"), SH.name, Literal("Address", lang="en")),
@@ -154,6 +159,7 @@ def address_option_ps():
     ps.add_severity("Violation")
     expected_triples.extend(
         [
+            (URIRef("#Address"), SH.property, URIRef("#addressContactOption_value")),
             (URIRef("#addressContactOption_value"), RDF.type, SH.PropertyShape),
             (URIRef("#addressContactOption_value"), SH.path, SDO.contactOption),
             (
@@ -297,4 +303,3 @@ def test_ap2shaclInit(simple_ap):
     assert ("sh", URIRef("http://www.w3.org/ns/shacl#")) in all_ns
     for t in expected_triples:
         assert t in converter.sg
-    assert False

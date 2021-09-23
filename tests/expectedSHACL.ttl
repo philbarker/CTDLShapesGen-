@@ -7,8 +7,17 @@
     sh:class schema:Person ;
     sh:description "A shape for tests" ;
     sh:name "Person shape" ;
-    sh:property <#personName_count> ;
+    sh:property <#personAddress_value>,
+        <#personName_count>,
+        <#personName_value> ;
     sh:targetClass schema:Person .
+
+<#Address> a sh:NodeShape ;
+    sh:class schema:PostalAddress ;
+    sh:description "A shape for tests" ;
+    sh:name "Address shape" ;
+    sh:property <#addressContactOption_value> ;
+    sh:targetObjectsOf schema:address .
 
 <#addressContactOption_value> a sh:PropertyShape ;
     sh:in ( schema:HearingImpairedSupported schema:TollFree ) ;
@@ -24,22 +33,16 @@
     sh:path schema:address ;
     sh:severity sh:Warning .
 
+<#personName_count> a sh:PropertyShape ;
+    sh:minCount 1 ;
+    sh:path schema:name ;
+    sh:severity sh:Violation .
+
 <#personName_value> a sh:PropertyShape ;
     sh:datatype xsd:string ;
     sh:minLength 2 ;
     sh:name "Name"@en,
         "Nombre"@es ;
     sh:nodeKind sh:Literal ;
-    sh:path schema:name ;
-    sh:severity sh:Violation .
-
-<#Address> a sh:NodeShape ;
-    sh:class schema:PostalAddress ;
-    sh:description "A shape for tests" ;
-    sh:name "Address shape" ;
-    sh:targetObjectsOf schema:address .
-
-<#personName_count> a sh:PropertyShape ;
-    sh:minCount 1 ;
     sh:path schema:name ;
     sh:severity sh:Violation .
