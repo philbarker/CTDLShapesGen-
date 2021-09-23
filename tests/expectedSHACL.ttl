@@ -34,7 +34,7 @@
     sh:severity sh:Violation .
 
 <#Address> a sh:NodeShape ;
-    sh:class schema:Address ;
+    sh:class schema:PostalAddress ;
     sh:description "A shape for tests" ;
     sh:name "Address shape" ;
     sh:targetObjectsOf schema:address .

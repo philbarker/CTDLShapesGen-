@@ -130,11 +130,11 @@ def address_type_ps():
     ps.add_mandatory(True)
     ps.add_repeatable(False)
     ps.add_valueNodeType("IRI")
-    ps.add_valueConstraint("schema:Address")
+    ps.add_valueConstraint("schema:PostalAddress")
     ps.add_severity("Violation")
     expected_triples.extend(
         [
-            (URIRef("#Address"), SH_class, SDO.Address),
+            (URIRef("#Address"), SH_class, SDO.PostalAddress),
         ]
     )
     return ps
