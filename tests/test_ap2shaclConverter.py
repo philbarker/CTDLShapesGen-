@@ -101,6 +101,64 @@ def person_type_ps():
 
 
 @pytest.fixture(scope="module")
+def contact_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("schema:email")
+    ps.add_property("schema:address")
+    ps.add_label("en", "Contact")
+    ps.add_mandatory(True)
+    ps.add_repeatable(True)
+    ps.add_severity("Violation")
+    expected_triples.extend(
+        [
+            (URIRef("#Person"), SH_or, BNode("personContact-schema-email-opt")),
+            (
+                BNode("personContact-schema-email-opt"),
+                RDF.first,
+                URIRef("#personContact-schema-email-opt"),
+            ),
+            (URIRef("#personContact-schema-email-opt"), RDF.type, SH.PropertyShape),
+            (URIRef("#personContact-schema-email-opt"), SH.path, SDO.email),
+            (URIRef("#personContact-schema-email-opt"), SH.minCount, Literal(1)),
+            (URIRef("#personContact-schema-email-opt"), SH.severity, SH.Violation),
+            (URIRef("#personContact-schema-address-opt"), RDF.type, SH.PropertyShape),
+            (URIRef("#personContact-schema-address-opt"), SH.path, SDO.address),
+            (URIRef("#personContact-schema-address-opt"), SH.minCount, Literal(1)),
+            (URIRef("#personContact-schema-address-opt"), SH.severity, SH.Violation),
+        ]
+    )
+    return ps
+
+
+@pytest.fixture(scope="module")
+def email_ps():
+    ps = PropertyStatement()
+    ps.add_shape("#Person")
+    ps.add_property("schema:email")
+    ps.add_label("en", "Email")
+    ps.add_mandatory(False)
+    ps.add_repeatable(True)
+    ps.add_valueNodeType("Literal")
+    ps.add_valueDataType("xsd:string")
+    ps.add_valueConstraint("/.+@.+/")
+    ps.add_valueConstraintType("pattern")
+    ps.add_severity("Warning")
+    expected_triples.extend(
+        [
+            (URIRef("#Person"), SH.property, URIRef("#personEmail_value")),
+            (URIRef("#personEmail_value"), RDF.type, SH.PropertyShape),
+            (URIRef("#personEmail_value"), SH.path, SDO.email),
+            (URIRef("#personEmail_value"), SH.name, Literal("Email", lang="en")),
+            (URIRef("#personEmail_value"), SH.nodeKind, SH.Literal),
+            (URIRef("#personEmail_value"), SH.pattern, Literal("/.+@.+/")),
+            (URIRef("#personEmail_value"), SH.severity, SH.Warning),
+        ]
+    )
+    return ps
+
+
+@pytest.fixture(scope="module")
 def address_ps():
     ps = PropertyStatement()
     ps.add_shape("#Person")
@@ -192,7 +250,7 @@ def person_shapeInfo():
         "targetType": "class",
         "mandatory": True,
         "severity": "Warning",
-        "properties": ["name", "address", "description"],
+        "properties": ["name", "contact", "description"],
     }
     expected_triples.extend(
         [
@@ -232,6 +290,8 @@ def simple_ap(
     person_shapeInfo,
     name_ps,
     person_type_ps,
+    contact_ps,
+    email_ps,
     address_ps,
     address_shapeInfo,
     address_type_ps,
@@ -244,6 +304,8 @@ def simple_ap(
     ap.add_shapeInfo("#Person", person_shapeInfo)
     ap.add_propertyStatement(person_type_ps)
     ap.add_propertyStatement(name_ps)
+    ap.add_propertyStatement(contact_ps)
+    ap.add_propertyStatement(email_ps)
     ap.add_propertyStatement(address_ps)
     ap.add_shapeInfo("#Address", address_shapeInfo)
     ap.add_propertyStatement(address_type_ps)
@@ -263,11 +325,10 @@ def test_list2RDFList():
     assert expected_ttl in g.serialize(format="turtle")
     g = Graph()
     list = ["sdo:address", "sdo:email", "sdo:contactOption"]
-    node_type = "IRI"
+    node_type = "anyURI"
     namespaces = {"sdo": "https://schema.org/"}
     start_node = list2RDFList(g, list, node_type, namespaces)
     g.add((URIRef("#cont"), SH_or, start_node))
-    print(g.serialize(format="turtle"))
     expected_ttl = "<#cont> ns1:or ( <https://schema.org/address> <https://schema.org/email> <https://schema.org/contactOption> )"
     assert expected_ttl in g.serialize(format="turtle")
 
@@ -295,7 +356,7 @@ def test_ap2shaclInit(simple_ap):
     assert "dct" in converter.ap.namespaces.keys()
     assert "rdf" in converter.ap.namespaces.keys()
     assert "sh" in converter.ap.namespaces.keys()
-    assert len(converter.ap.propertyStatements) == 5
+    assert len(converter.ap.propertyStatements) == 7
     assert len(converter.ap.shapeInfo) == 2
     assert type(converter.sg) == Graph
     all_ns = [n for n in converter.sg.namespace_manager.namespaces()]

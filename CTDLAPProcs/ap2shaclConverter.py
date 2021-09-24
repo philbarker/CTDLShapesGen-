@@ -8,6 +8,7 @@ from urllib.parse import quote
 
 # stoopid conflicts with python key words
 SH_in = URIRef("http://www.w3.org/ns/shacl#in")
+SH_or = URIRef("http://www.w3.org/ns/shacl#or")
 SH_class = URIRef("http://www.w3.org/ns/shacl#class")
 
 
@@ -21,7 +22,7 @@ def make_property_shape_id(ps):
         # need to avoid unnecessary #s
         sh = quote(ps.shapes[0].replace("#", "").replace(" ", "").lower())
     if ps.labels == {}:
-        id = "#" + sh + URIRef(str(uuid4()).lower())
+        id = URIRef("#" + sh + str(uuid4()).lower())
         return id
     else:
         languages = ps.labels.keys()
@@ -87,25 +88,29 @@ def convert_nodeKind(node_types):
 def list2RDFList(g, list, node_type, namespaces):
     """Convert a python list to an RDF list of items with specified node type"""
     # Currently only deals with lists that are all Literals or all IRIs
-    if not (node_type in ["Literal", "IRI"]):
+    # URIRef - already a rfdlib.URIRef ; anyURI text to convert to URIRef
+    if not (node_type in ["Literal", "anyURI", "URIRef"]):
         msg = "Node type " + node_type + " unknown."
         raise Exception(msg)
     # useful to id list start node for testing
-    if type(list[0]) is str:
+    if type(list[0]) is str or (type(list[0]) is URIRef):
         start_node_id = list[0].replace(":", "-")
         start_node_id = start_node_id.replace(" ", "-")
+        start_node_id = start_node_id.replace("#", "")
         start_node_id = start_node_id.replace("_", "-")
     elif (type(list[0]) is int) or (type(list[0]) is float):
         start_node_id = list[0]
     else:
         start_node_id = None
-    print(start_node_id)
     start_node = BNode(start_node_id)
+    print(start_node)
     current_node = start_node
     for item in list:
         if node_type == "Literal":
             g.add((current_node, RDF.first, Literal(item)))
-        elif node_type == "IRI":
+        elif node_type == "URIRef":
+            g.add((current_node, RDF.first, item))
+        elif node_type == "anyURI":
             item_uri = str2URIRef(namespaces, item)
             g.add((current_node, RDF.first, item_uri))
         if item == list[-1]:  # it's the last item
@@ -159,8 +164,28 @@ class AP2SHACLConverter:
 
     def convert_propertyStatements(self):
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
+        # TODO: untangle this : there must be repeats that can be factored out
+        # TODO: consider if alternives in sh.or could be special cases like type 
         for ps in self.ap.propertyStatements:
-            if ps.properties == ["rdf:type"]:
+            if len(ps.properties) > 1:
+                ps_ids = []
+                severity = self.convert_severity(ps.severity)
+                for p in ps.properties:
+                    prop = quote(p.replace("#", "").replace(":", "-"))
+                    ps_id = make_property_shape_id(ps) + "-" + prop + "-opt"
+                    ps_ids.append(ps_id)
+                    ps_opt_uri = URIRef(ps_id)
+                    path = str2URIRef(self.ap.namespaces, p)
+                    self.sg.add((ps_opt_uri, RDF.type, SH.PropertyShape))
+                    self.sg.add((ps_opt_uri, SH.path, path))
+                    if ps.mandatory:
+                        self.sg.add((ps_opt_uri, SH.minCount, Literal(1)))
+                    if not ps.repeatable:
+                        self.sg.add((ps_opt_uri, SH.maxCount, Literal(1)))
+                    self.sg.add(((ps_opt_uri, SH.severity, severity)))
+                or_list = list2RDFList(self.sg, ps_ids, "URIRef", self.ap.namespaces)
+                self.sg.add((shape_uri, SH_or, or_list))
+            elif ps.properties == ["rdf:type"]:
                 # this is the way that TAP asserts objects must be of certain type, we can use sh:class instead
                 for shape in ps.shapes:
                     shape_uri = str2URIRef(self.ap.namespaces, shape)
@@ -240,7 +265,7 @@ class AP2SHACLConverter:
                 )
             elif "IRI" in ps.valueNodeTypes:
                 constraint_list = list2RDFList(
-                    self.sg, valueConstraints, "IRI", self.ap.namespaces
+                    self.sg, valueConstraints, "anyURI", self.ap.namespaces
                 )
             else:
                 raise Exception("Incompatible node kind and constraint.")
