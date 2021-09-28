@@ -193,36 +193,36 @@ class AP2SHACLConverter:
                         type_uri = str2URIRef(self.ap.namespaces, vc)
                         self.sg.add((shape_uri, SH_class, type_uri))
                 continue
-            ps_id = make_property_shape_id(ps)
-            severity = self.convert_severity(ps.severity)
-            ps_kind_uri = URIRef(ps_id + "_value")
-            for sh in ps.shapes:
-                self.sg.add((URIRef(sh), SH.property, ps_kind_uri))
-            self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
-            for lang in ps.labels:
-                name = Literal(ps.labels[lang], lang=lang)
-                self.sg.add((ps_kind_uri, SH.name, name))
-            for property in ps.properties:
-                path = str2URIRef(self.ap.namespaces, property)
-                self.sg.add((ps_kind_uri, SH.path, path))
-            self.sg.add(((ps_kind_uri, SH.severity, severity)))
-            if ps.valueNodeTypes != []:
-                nodeKind = convert_nodeKind(ps.valueNodeTypes)
-                self.sg.add((ps_kind_uri, SH.nodeKind, nodeKind))
-            if ps.valueDataTypes != []:
-                for valueDataType in ps.valueDataTypes:
-                    datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
-                    self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
-            if ps.valueConstraints != []:
-                sh_constrnt_type, constrnts = self.convert_valConstraints(ps)
-                for c in constrnts:
-                    self.sg.add((ps_kind_uri, sh_constrnt_type, c))
-            else:  # no value constraints to add
-                pass
-
-            if ps.valueShapes != []:
-                for shape in ps.valueShapes:
-                    self.sg.add((ps_kind_uri, SH.node, URIRef(shape)))
+            else:
+                ps_id = make_property_shape_id(ps)
+                severity = self.convert_severity(ps.severity)
+                ps_kind_uri = URIRef(ps_id + "_value")
+                for sh in ps.shapes:
+                    self.sg.add((URIRef(sh), SH.property, ps_kind_uri))
+                self.sg.add((ps_kind_uri, RDF.type, SH.PropertyShape))
+                for lang in ps.labels:
+                    name = Literal(ps.labels[lang], lang=lang)
+                    self.sg.add((ps_kind_uri, SH.name, name))
+                for property in ps.properties:
+                    path = str2URIRef(self.ap.namespaces, property)
+                    self.sg.add((ps_kind_uri, SH.path, path))
+                self.sg.add(((ps_kind_uri, SH.severity, severity)))
+                if ps.valueNodeTypes != []:
+                    nodeKind = convert_nodeKind(ps.valueNodeTypes)
+                    self.sg.add((ps_kind_uri, SH.nodeKind, nodeKind))
+                if ps.valueDataTypes != []:
+                    for valueDataType in ps.valueDataTypes:
+                        datatypeURI = str2URIRef(self.ap.namespaces, valueDataType)
+                        self.sg.add((ps_kind_uri, SH.datatype, datatypeURI))
+                if ps.valueConstraints != []:
+                    sh_constrnt_type, constrnts = self.convert_valConstraints(ps)
+                    for c in constrnts:
+                        self.sg.add((ps_kind_uri, sh_constrnt_type, c))
+                else:  # no value constraints to add
+                    pass
+                if ps.valueShapes != []:
+                    for shape in ps.valueShapes:
+                        self.sg.add((ps_kind_uri, SH.node, URIRef(shape)))
             if ps.mandatory or not ps.repeatable:
                 # Need separate property shape check that property is used correct number of times.
                 # Has to separated from other checks as failing ones of those might lead to wrong result on uniqueness.
