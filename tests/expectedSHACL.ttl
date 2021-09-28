@@ -7,7 +7,11 @@
     sh:class schema:Person ;
     sh:description "A shape for tests" ;
     sh:name "Person shape" ;
+    sh:or ( <#personContact-schema-email-opt> <#personContact-schema-address-opt> ) ;
     sh:property <#personAddress_value>,
+        <#personContact_count>,
+        <#personContact_value>,
+        <#personEmail_value>,
         <#personName_count>,
         <#personName_value> ;
     sh:targetClass schema:Person .
@@ -31,6 +35,36 @@
     sh:node <#Address> ;
     sh:nodeKind sh:BlankNodeOrIRI ;
     sh:path schema:address ;
+    sh:severity sh:Warning .
+
+<#personContact-schema-address-opt> a sh:PropertyShape ;
+    sh:minCount 1 ;
+    sh:path schema:address ;
+    sh:severity sh:Violation .
+
+<#personContact-schema-email-opt> a sh:PropertyShape ;
+    sh:minCount 1 ;
+    sh:path schema:email ;
+    sh:severity sh:Violation .
+
+<#personContact_count> a sh:PropertyShape ;
+    sh:minCount 1 ;
+    sh:path schema:address,
+        schema:email ;
+    sh:severity sh:Violation .
+
+<#personContact_value> a sh:PropertyShape ;
+    sh:name "Contact"@en ;
+    sh:path schema:address,
+        schema:email ;
+    sh:severity sh:Violation .
+
+<#personEmail_value> a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:name "Email"@en ;
+    sh:nodeKind sh:Literal ;
+    sh:path schema:email ;
+    sh:pattern "/.+@.+/" ;
     sh:severity sh:Warning .
 
 <#personName_count> a sh:PropertyShape ;

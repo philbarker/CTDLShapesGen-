@@ -165,7 +165,7 @@ class AP2SHACLConverter:
     def convert_propertyStatements(self):
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         # TODO: untangle this : there must be repeats that can be factored out
-        # TODO: consider if alternives in sh.or could be special cases like type 
+        # TODO: consider if alternives in sh.or could be special cases like type
         for ps in self.ap.propertyStatements:
             if len(ps.properties) > 1:
                 ps_ids = []
