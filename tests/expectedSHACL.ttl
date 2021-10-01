@@ -9,7 +9,6 @@
     sh:name "Person shape" ;
     sh:or ( <#personContact-schema-email-opt> <#personContact-schema-address-opt> ) ;
     sh:property <#personAddress_value>,
-        <#personContact-schema-address-opt_count>,
         <#personEmail_value>,
         <#personName_count>,
         <#personName_value> ;
@@ -39,12 +38,6 @@
 <#personContact-schema-address-opt> a sh:PropertyShape ;
     sh:minCount 1 ;
     sh:path schema:address ;
-    sh:severity sh:Violation .
-
-<#personContact-schema-address-opt_count> a sh:PropertyShape ;
-    sh:minCount 1 ;
-    sh:path schema:address,
-        schema:email ;
     sh:severity sh:Violation .
 
 <#personContact-schema-email-opt> a sh:PropertyShape ;

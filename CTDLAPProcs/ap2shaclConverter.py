@@ -165,7 +165,7 @@ class AP2SHACLConverter:
     def convert_propertyStatements(self):
         """Add the property statements from the application profile to the SHACL graph as property shapes."""
         # TODO: untangle this : there must be repeats that can be factored out
-        # TODO: consider if alternives in sh.or could be special cases like type
+        # TODO: consider if alterntves in sh.or could be special cases like type
         for ps in self.ap.propertyStatements:
             if len(ps.properties) > 1:
                 ps_ids = []
@@ -223,21 +223,21 @@ class AP2SHACLConverter:
                 if ps.valueShapes != []:
                     for shape in ps.valueShapes:
                         self.sg.add((ps_kind_uri, SH.node, URIRef(shape)))
-            if ps.mandatory or not ps.repeatable:
-                # Need separate property shape check that property is used correct number of times.
-                # Has to separated from other checks as failing ones of those might lead to wrong result on uniqueness.
-                ps_count_uri = URIRef(ps_id + "_count")
-                self.sg.add((ps_count_uri, RDF.type, SH.PropertyShape))
-                for property in ps.properties:
-                    path = str2URIRef(self.ap.namespaces, property)
-                    self.sg.add((ps_count_uri, SH.path, path))
-                if ps.mandatory:
-                    self.sg.add((ps_count_uri, SH.minCount, Literal(1)))
-                if not ps.repeatable:
-                    self.sg.add((ps_count_uri, SH.maxCount, Literal(1)))
-                for sh in ps.shapes:
-                    self.sg.add((URIRef(sh), SH.property, ps_count_uri))
-                self.sg.add(((ps_count_uri, SH.severity, severity)))
+                if ps.mandatory or not ps.repeatable :
+                    # Need separate property shape check that property is used correct number of times.
+                    # Has to separated from other checks as failing ones of those might lead to wrong result on uniqueness.
+                    ps_count_uri = URIRef(ps_id + "_count")
+                    self.sg.add((ps_count_uri, RDF.type, SH.PropertyShape))
+                    for property in ps.properties:
+                        path = str2URIRef(self.ap.namespaces, property)
+                        self.sg.add((ps_count_uri, SH.path, path))
+                    if ps.mandatory:
+                        self.sg.add((ps_count_uri, SH.minCount, Literal(1)))
+                    if not ps.repeatable:
+                        self.sg.add((ps_count_uri, SH.maxCount, Literal(1)))
+                    for sh in ps.shapes:
+                        self.sg.add((URIRef(sh), SH.property, ps_count_uri))
+                    self.sg.add(((ps_count_uri, SH.severity, severity)))
 
     def convert_severity(self, severity):
         """Return SHACL value for severity based on string."""
