@@ -1,5 +1,4 @@
-from .ap import AP
-from .propertyStatement import PropertyStatement
+from AP import AP, PropertyStatement
 from csv import DictReader
 from .readAPJSON import readJSONFile
 

@@ -1,7 +1,7 @@
 import pytest
 from CTDLAPProcs import CE2APConverter, readJSONFile
 
-ce_data_file = "InputData/policyBrowserData.json"
+ce_data_file = "tests/TestData/policyBrowserData.json"
 
 
 def test_readJSONFile():
@@ -25,7 +25,7 @@ def test_initAP(converter):
 
 
 def test_load_CE_APs(converter):
-    converter.load_CE_APs("InputData/policyBrowserData.json")
+    converter.load_CE_APs("tests/TestData/policyBrowserData.json")
     ce_AP_data = converter.ce_AP_data
     assert len(ce_AP_data["RawShapes"]) == 42
     assert ce_AP_data["RawShapes"][0]["ClassURI"] == "ceterms:ApprenticeshipCertificate"
@@ -95,5 +95,5 @@ def test_convert_CE_AP(converter):
 
 
 def test_load_namespaces(converter):
-    converter.ap.load_namespaces("InputData/namespaces.csv")
+    converter.ap.load_namespaces("tests/TestData/namespaces.csv")
     assert converter.ap.namespaces["ceterms"] == "https://purl.org/ctdl/terms/"
